@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Cadence{% endblock %}
+
+{% block content %}
+<section class="hero" style="padding:60px 0 40px">
+  <div class="wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px">
+      <div>
+        <div class="eyebrow">Dashboard</div>
+        <h1 style="font-size:42px">Your rollouts.</h1>
+      </div>
+      <div style="display:flex;gap:12px">
+        <a href="/connect" class="btn btn-ghost">+ Connect TikTok</a>
+        <a href="/dashboard/new" class="btn btn-primary">+ Schedule post</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <div class="wrap">
+
+    <!-- Connected accounts -->
+    <div style="margin-bottom:48px">
+      <div class="eyebrow" style="margin-bottom:16px">Connected accounts</div>
+      <div class="grid-3">
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px">
+            <div class="card-icon" style="width:36px;height:36px;margin-bottom:0">@</div>
+            <div>
+              <div style="font-family:var(--font-d);font-weight:700;font-size:16px">@wywh_la</div>
+              <div style="font-size:13px;color:var(--ink-mute)">Wish You Were Here</div>
+            </div>
+          </div>
+          <p style="font-size:13.5px;color:var(--ink-soft);margin-top:8px">3 scheduled this week</p>
+        </div>
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px">
+            <div class="card-icon" style="width:36px;height:36px;margin-bottom:0">@</div>
+            <div>
+              <div style="font-family:var(--font-d);font-weight:700;font-size:16px">@onetakejake2</div>
+              <div style="font-size:13px;color:var(--ink-mute)">Onetakejake</div>
+            </div>
+          </div>
+          <p style="font-size:13.5px;color:var(--ink-soft);margin-top:8px">5 scheduled this week</p>
+        </div>
+        <div class="card" style="display:flex;align-items:center;justify-content:center;border:2px dashed rgba(11,18,32,.15);background:transparent;color:var(--ink-mute);font-weight:500">+ Add account</div>
+      </div>
+    </div>
+
+    <!-- Upcoming queue -->
+    <div>
+      <div class="eyebrow" style="margin-bottom:16px">Upcoming queue</div>
+      <div class="card" style="padding:0">
+        <div style="display:grid;grid-template-columns:120px 1fr 1fr 100px;gap:0;border-bottom:1px solid rgba(11,18,32,.06);padding:14px 24px;background:var(--paper-2);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute)">
+          <div>Time</div>
+          <div>Account</div>
+          <div>Caption</div>
+          <div>Status</div>
+        </div>
+        {% for row in [
+          {'t':'Today 4:00 PM','a':'@wywh_la','c':'Episode 14 trailer — Maijah drops Friday.','s':'scheduled'},
+          {'t':'Today 8:00 PM','a':'@onetakejake2','c':'Behind the scenes on the Maijah shoot.','s':'scheduled'},
+          {'t':'Tomorrow 12:00 PM','a':'@wywh_la','c':'EP 14 reveal. Full session live now.','s':'scheduled'},
+          {'t':'Fri 6:00 PM','a':'@onetakejake2','c':'Cam rig walk-through, episode 14 set.','s':'scheduled'}
+        ] %}
+        <div style="display:grid;grid-template-columns:120px 1fr 1fr 100px;gap:0;padding:18px 24px;border-bottom:1px solid rgba(11,18,32,.04);font-size:14px;align-items:center">
+          <div style="color:var(--ink-soft);font-family:var(--font-d);font-weight:600">{{ row.t }}</div>
+          <div style="font-family:var(--font-d);font-weight:600">{{ row.a }}</div>
+          <div style="color:var(--ink-soft)">{{ row.c }}</div>
+          <div><span style="background:rgba(14,165,233,.1);color:var(--sky-deep);padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">{{ row.s }}</span></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Sign in — Cadence{% endblock %}
+
+{% block content %}
+<section class="hero" style="padding:80px 0 100px">
+  <div class="wrap" style="max-width:480px">
+    <div style="text-align:center;margin-bottom:32px">
+      <div class="eyebrow">Welcome back</div>
+      <h1 style="font-size:42px">Sign in to <span class="italic-accent">Cadence.</span></h1>
+    </div>
+
+    <form action="/login" method="post" class="card" style="padding:40px">
+      <label style="display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px">Email</label>
+      <input type="email" name="email" required style="width:100%;padding:12px 14px;border:1px solid rgba(11,18,32,.12);border-radius:10px;font-family:var(--font-b);font-size:15px;margin-bottom:18px"/>
+
+      <label style="display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px">Password</label>
+      <input type="password" name="password" required style="width:100%;padding:12px 14px;border:1px solid rgba(11,18,32,.12);border-radius:10px;font-family:var(--font-b);font-size:15px;margin-bottom:24px"/>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">Sign in →</button>
+    </form>
+
+    <p style="text-align:center;margin-top:24px;font-size:14px;color:var(--ink-soft)">
+      No account? <a href="/signup" style="color:var(--sky-deep);font-weight:600">Create one</a>
+    </p>
+  </div>
+</section>
+{% endblock %}

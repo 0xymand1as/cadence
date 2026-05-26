@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: cadence
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: TIKTOK_CLIENT_KEY
+        sync: false          # paste in Render dashboard — do not commit
+      - key: TIKTOK_CLIENT_SECRET
+        sync: false
+      - key: TIKTOK_REDIRECT_URI
+        value: https://cadence.biggerdreamsco.com/callback
+      - key: FLASK_SECRET
+        generateValue: true
