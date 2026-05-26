@@ -1,113 +1,49 @@
 {% extends "base.html" %}
-
 {% block title %}Features — Cadence{% endblock %}
-{% block desc %}Multi-brand TikTok scheduling, release-cycle workflows, per-brand voice templates, official-API publishing. Cadence by Bigger Dreams.{% endblock %}
-
 {% block content %}
-
-<section class="hero" style="padding:80px 0 60px">
-  <div class="wrap">
-    <div class="hero-inner">
-      <div class="eyebrow">Features</div>
-      <h1>Every tool a <span class="italic-accent">rollout</span> needs.</h1>
-      <p class="hero-sub">Cadence is purpose-built for music industry workflows. No generic scheduler features bolted on — every feature exists because we use it to ship Wish You Were Here every week.</p>
-    </div>
-  </div>
-</section>
-
 <section class="section">
-  <div class="wrap">
-
-    <!-- Feature 1: Multi-brand calendar -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;margin-bottom:80px">
-      <div>
-        <div class="eyebrow">Multi-brand calendar</div>
-        <h2 style="margin-bottom:18px">See every account in one view.</h2>
-        <p style="font-size:17px;color:var(--ink-soft);margin-bottom:24px">Artist, label, show, production house — all connected, all visible on one calendar. Same-day collisions surface in red. Drag posts to reschedule across accounts in one motion.</p>
-        <ul class="ticks">
-          <li>Up to 20 TikTok accounts per workspace</li>
-          <li>Visual collision detection (same-hour, same-day, same-week)</li>
-          <li>Drag-and-drop rescheduling</li>
-          <li>Color-coded per account / brand / lane</li>
-        </ul>
-      </div>
-      <div class="card" style="background:linear-gradient(135deg,var(--paper-3),var(--paper-2));border:1px solid rgba(14,165,233,.15);padding:40px;min-height:320px;display:flex;align-items:center;justify-content:center">
-        <div style="text-align:center;color:var(--ink-mute);font-family:var(--font-d);letter-spacing:.2em;text-transform:uppercase;font-size:11px">Calendar preview<br/><span style="font-family:var(--font-b);text-transform:none;letter-spacing:normal;font-size:14px;color:var(--ink-soft);margin-top:8px;display:inline-block">[ screenshot in beta ]</span></div>
-      </div>
-    </div>
-
-    <!-- Feature 2: Release-cycle scheduling -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;margin-bottom:80px">
-      <div class="card" style="background:linear-gradient(135deg,var(--paper-3),var(--paper-2));border:1px solid rgba(14,165,233,.15);padding:40px;min-height:320px;display:flex;align-items:center;justify-content:center;order:1">
-        <div style="text-align:center;color:var(--ink-mute);font-family:var(--font-d);letter-spacing:.2em;text-transform:uppercase;font-size:11px">Rollout planner<br/><span style="font-family:var(--font-b);text-transform:none;letter-spacing:normal;font-size:14px;color:var(--ink-soft);margin-top:8px;display:inline-block">[ screenshot in beta ]</span></div>
-      </div>
-      <div style="order:2">
-        <div class="eyebrow">Release-cycle scheduling</div>
-        <h2 style="margin-bottom:18px">Plan a 14-day rollout in one operation.</h2>
-        <p style="font-size:17px;color:var(--ink-soft);margin-bottom:24px">Pick a release date. Cadence builds the rollout calendar across every connected account — staggered cadence, gap rules enforced, peak posting windows respected.</p>
-        <ul class="ticks">
-          <li>Pre-built 7-day, 14-day, 30-day rollout templates</li>
-          <li>Auto-stagger to avoid same-hour collisions</li>
-          <li>Configurable minimum gap between posts per account</li>
-          <li>Custom rollout templates per workspace</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Feature 3: Per-brand voice templates -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;margin-bottom:80px">
-      <div>
-        <div class="eyebrow">Per-brand voice</div>
-        <h2 style="margin-bottom:18px">The label talks like the label.</h2>
-        <p style="font-size:17px;color:var(--ink-soft);margin-bottom:24px">Each connected account gets its own caption template, hashtag set, and CTA library. The label doesn't sound like the artist. The show doesn't sound like the production company. Voice stays consistent without copy-pasting.</p>
-        <ul class="ticks">
-          <li>Caption templates per connected account</li>
-          <li>Hashtag sets per brand (rotating + locked)</li>
-          <li>CTA library (link in bio, comment-to-buy, etc.)</li>
-          <li>Variable substitution (artist name, release date, etc.)</li>
-        </ul>
-      </div>
-      <div class="card" style="background:linear-gradient(135deg,var(--paper-3),var(--paper-2));border:1px solid rgba(14,165,233,.15);padding:40px;min-height:320px;display:flex;align-items:center;justify-content:center">
-        <div style="text-align:center;color:var(--ink-mute);font-family:var(--font-d);letter-spacing:.2em;text-transform:uppercase;font-size:11px">Template editor<br/><span style="font-family:var(--font-b);text-transform:none;letter-spacing:normal;font-size:14px;color:var(--ink-soft);margin-top:8px;display:inline-block">[ screenshot in beta ]</span></div>
-      </div>
-    </div>
-
+  <div class="wrap" style="text-align:center;max-width:50ch;margin-inline:auto;margin-bottom:4rem">
+    <div class="eyebrow">Features</div>
+    <h2>What Cadence ships.</h2>
+    <p class="lead" style="margin-top:1rem">Every feature designed around the music release window — not a generic Buffer clone.</p>
   </div>
-</section>
-
-<!-- DARK: Direct publish + API -->
-<section class="dark-section">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow">Built on official TikTok APIs</div>
-      <h2>No browser hacks. No reminders. Just <span class="italic-accent">scheduled</span> → <span class="italic-accent">published.</span></h2>
-      <p class="section-sub">Cadence uses TikTok's Content Posting API — the same official integration Buffer, Later, and Hootsuite use. Posts publish directly at the scheduled time. No "open the app to confirm." No browser-automation ban risk.</p>
+  <div class="wrap grid grid-3">
+    <div class="card">
+      <h3>Multi-account TikTok OAuth</h3>
+      <p>Connect every TikTok account in your rollout via TikTok's official OAuth + PKCE flow. Tokens encrypted at rest with AES-256.</p>
     </div>
-    <div class="grid-3" style="margin-top:48px">
-      <div class="dark-card">
-        <h3 style="margin-bottom:12px">Direct publish</h3>
-        <p>Video bytes upload to TikTok via the official chunked upload endpoint. At the scheduled time, the post goes live. No human in the loop.</p>
-      </div>
-      <div class="dark-card">
-        <h3 style="margin-bottom:12px">Privacy + safety</h3>
-        <p>OAuth tokens encrypted at rest with AES-256. Per-user isolated storage. Revoke access anytime via TikTok's app permissions page.</p>
-      </div>
-      <div class="dark-card">
-        <h3 style="margin-bottom:12px">Performance pulled back</h3>
-        <p>View counts, likes, comments fetched 1h / 24h / 7d after publish. Drives the post-rollout analytics dashboard.</p>
-      </div>
+    <div class="card">
+      <h3>Native Content Posting API</h3>
+      <p>Direct chunked upload to TikTok via their official Content Posting API. No scraping, no browser automation, no ban risk.</p>
+    </div>
+    <div class="card">
+      <h3>Unified release calendar</h3>
+      <p>See every artist, label, and show account on one calendar. Avoid same-hour collisions during release week.</p>
+    </div>
+    <div class="card">
+      <h3>Per-brand caption templates</h3>
+      <p>Show feeds need different copy than artist feeds. Save voice-locked templates per account so the right tone goes out every time.</p>
+    </div>
+    <div class="card">
+      <h3>Auto-publish at scheduled time</h3>
+      <p>Background worker fires posts within seconds of scheduled time. Refresh-token rotation handled automatically. No phone reminders required.</p>
+    </div>
+    <div class="card">
+      <h3>Cancel before publish</h3>
+      <p>Mistakes happen. Cancel any queued post until it enters the publishing window.</p>
+    </div>
+    <div class="card">
+      <h3>Privacy-first storage</h3>
+      <p>OAuth tokens encrypted with Fernet/AES-256. Per-user isolation. Delete-account flow removes everything within 7 days.</p>
+    </div>
+    <div class="card">
+      <h3>Status tracking</h3>
+      <p>Every post tracked through queued → publishing → posted/failed. See exactly when something went wrong and why.</p>
+    </div>
+    <div class="card">
+      <h3>Built by working production crew</h3>
+      <p>Cadence is built by Bigger Dreams, a working LA production company. Wish You Were Here, our flagship show, was the test customer.</p>
     </div>
   </div>
 </section>
-
-<!-- CTA -->
-<section class="cta-strip">
-  <div class="wrap">
-    <div class="eyebrow" style="color:rgba(255,255,255,.85);text-shadow:0 1px 4px rgba(0,0,0,.2)">Free for 14 days</div>
-    <h2 style="margin-bottom:0">Try every feature. No card required.</h2>
-    <p class="section-sub">Connect your TikToks, schedule your first rollout, see the calendar in action.</p>
-    <a href="/signup" class="btn btn-primary">Get started →</a>
-  </div>
-</section>
-
 {% endblock %}

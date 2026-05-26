@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Connected accounts — Cadence{% endblock %}
+{% block content %}
+<section class="section-sm">
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:2rem;gap:1rem;flex-wrap:wrap">
+    <div>
+      <div class="eyebrow">Connected accounts</div>
+      <h2>TikTok accounts</h2>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('connect') }}">+ Connect another</a>
+  </div>
+
+  <div class="wrap">
+    {% if not accts %}
+    <div class="card" style="text-align:center;padding:3rem">
+      <p style="color:var(--text-dim);margin-bottom:1.5rem">No accounts connected yet.</p>
+      <a class="btn btn-primary" href="{{ url_for('connect') }}">Connect TikTok</a>
+    </div>
+    {% else %}
+    <div class="grid grid-3">
+      {% for a in accts %}
+      <div class="card">
+        <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem">
+          {% if a.avatar_url %}<img src="{{ a.avatar_url }}" style="width:48px;height:48px;border-radius:999px">{% endif %}
+          <div>
+            <div style="font-weight:700">@{{ a.handle or "(no handle)" }}</div>
+            <div style="font-size:.8rem;color:var(--text-dim)">open_id: {{ a.tt_open_id[:16] }}…</div>
+          </div>
+        </div>
+        <div style="font-size:.85rem;color:var(--text-dim)">
+          Connected {{ a.created_at.strftime('%Y-%m-%d') }}<br>
+          Token refreshes automatically.
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div style="margin-top:3rem;padding:2rem;background:var(--bg-cool);border-radius:16px;max-width:640px">
+      <h3 style="margin-bottom:.5rem;font-size:1rem">Delete your Cadence account</h3>
+      <p style="font-size:.9rem;color:var(--text-dim);margin-bottom:1rem">Permanently removes all data, tokens, and scheduled posts. To revoke Cadence's access to TikTok independently, manage it at <a href="https://www.tiktok.com/setting/security" style="color:var(--sky-deep)">tiktok.com/setting/security</a>.</p>
+      <form method="POST" action="{{ url_for('delete_account') }}" onsubmit="return confirm('Permanently delete your Cadence account?');">
+        <button type="submit" class="btn btn-danger">Delete account</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

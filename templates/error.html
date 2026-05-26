@@ -1,19 +1,12 @@
 {% extends "base.html" %}
-
 {% block title %}Something went wrong — Cadence{% endblock %}
-
 {% block content %}
-<section class="hero" style="padding:120px 0 100px">
-  <div class="wrap">
-    <div class="hero-inner">
-      <div class="eyebrow" style="color:#ef4444">Error</div>
-      <h1>Something didn't <span class="italic-accent">work.</span></h1>
-      <p class="hero-sub">{{ message or "Unknown error. Please try again or contact support." }}</p>
-      <div class="hero-cta-row">
-        <a href="/" class="btn btn-primary">Back to home</a>
-        <a href="mailto:jakedouglas@biggerdreamsco.com" class="btn btn-ghost">Email support</a>
-      </div>
-    </div>
+<section class="section">
+  <div class="wrap" style="text-align:center;max-width:50ch;margin-inline:auto">
+    <div class="eyebrow">Error</div>
+    <h2 style="margin-bottom:1rem">Something went wrong.</h2>
+    <p class="lead" style="margin-bottom:2rem">{{ message }}</p>
+    <a class="btn btn-primary" href="{{ url_for('index') }}">Back to home</a>
   </div>
 </section>
 {% endblock %}

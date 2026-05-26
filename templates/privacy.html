@@ -1,81 +1,72 @@
 {% extends "base.html" %}
-
 {% block title %}Privacy Policy — Cadence{% endblock %}
-
 {% block content %}
-<section class="legal">
-  <div class="wrap" style="padding:0">
-    <h1>Privacy Policy</h1>
-    <div class="updated">Last updated: 2026-05-21</div>
+<section class="section-sm">
+  <div class="wrap" style="max-width:740px;margin-inline:auto">
+    <div class="eyebrow">Legal</div>
+    <h2 style="margin-bottom:.25rem">Privacy Policy</h2>
+    <p style="color:var(--text-dim);margin-bottom:2rem"><em>Last updated: 2026-05-21</em></p>
 
-    <p>Cadence is a multi-brand social scheduling platform built for music production companies, independent artists, and entertainment brands. This Privacy Policy explains what personal information we collect, how we use it, and the rights you have over it.</p>
+    <div style="font-size:1.02rem;line-height:1.7;color:var(--text)">
+      <p style="margin-bottom:1.25rem">Cadence is a multi-brand social scheduling platform built for music production companies, independent artists, and entertainment brands. This Privacy Policy explains what personal information we collect, how we use it, and the rights you have over it.</p>
 
-    <h2>1. Information we collect</h2>
-    <ul>
-      <li><strong>Account information.</strong> When you create a Cadence account, we collect your name, email address, password (stored hashed via bcrypt), and billing details (handled by Stripe — we do not store card numbers).</li>
-      <li><strong>Connected social accounts.</strong> When you connect a TikTok account to Cadence via OAuth, TikTok provides us with an access token and refresh token scoped to the permissions you grant. We store these tokens encrypted at rest using AES-256.</li>
-      <li><strong>Content you create or upload.</strong> Videos, captions, hashtags, scheduled times, and any analytics responses you choose to view through Cadence.</li>
-      <li><strong>Usage data.</strong> Standard server logs (IP address, timestamps, request paths) retained for 30 days for security and debugging. No third-party analytics or advertising trackers.</li>
-    </ul>
+      <h3 style="margin:2rem 0 .5rem">1. Information we collect</h3>
+      <ul style="margin-left:1.5rem;line-height:1.8">
+        <li><strong>Account information.</strong> When you create a Cadence account, we collect your name, email address, password (stored hashed via bcrypt), and billing details (handled by Stripe — we do not store card numbers).</li>
+        <li><strong>Connected social accounts.</strong> When you connect a TikTok account via OAuth, TikTok provides us with an access token and refresh token scoped to the permissions you grant. We store these tokens encrypted at rest using AES-256.</li>
+        <li><strong>Content you create or upload.</strong> Videos, captions, hashtags, scheduled times, and any analytics responses you choose to view through Cadence.</li>
+        <li><strong>Usage data.</strong> Standard server logs (IP, timestamps, request paths) retained for 30 days. No third-party analytics or advertising trackers.</li>
+      </ul>
 
-    <h2>2. How we use information</h2>
-    <ul>
-      <li>To deliver scheduled posts to the social platforms you've connected (TikTok, with planned support for Instagram, YouTube, and Facebook).</li>
-      <li>To authenticate you and secure your account.</li>
-      <li>To process subscription billing through Stripe.</li>
-      <li>To send transactional emails (post confirmations, scheduling failures, account notices). No marketing emails without explicit opt-in.</li>
-    </ul>
+      <h3 style="margin:2rem 0 .5rem">2. How we use information</h3>
+      <ul style="margin-left:1.5rem;line-height:1.8">
+        <li>Deliver scheduled posts to the social platforms you've connected.</li>
+        <li>Authenticate you and secure your account.</li>
+        <li>Process subscription billing through Stripe.</li>
+        <li>Send transactional emails (post confirmations, scheduling failures, account notices). No marketing emails without opt-in.</li>
+      </ul>
 
-    <h2>3. Third-party services</h2>
-    <p>Cadence integrates with the following processors. Each operates under its own privacy policy:</p>
-    <ul>
-      <li><strong>TikTok</strong> (Content Posting API) — for publishing scheduled content</li>
-      <li><strong>Stripe</strong> — for subscription billing</li>
-      <li><strong>Render.com</strong> — for hosting</li>
-      <li><strong>AWS S3</strong> — for video storage during upload pipeline</li>
-      <li><strong>Anthropic API</strong> — optional caption-assist feature; off by default, requires user opt-in</li>
-    </ul>
+      <h3 style="margin:2rem 0 .5rem">3. Third-party services</h3>
+      <ul style="margin-left:1.5rem;line-height:1.8">
+        <li><strong>TikTok</strong> — Content Posting API for publishing</li>
+        <li><strong>Stripe</strong> — subscription billing</li>
+        <li><strong>Render.com</strong> — hosting</li>
+        <li><strong>Anthropic API</strong> — optional caption-assist (off by default, requires opt-in)</li>
+      </ul>
 
-    <h2>4. Data retention and deletion</h2>
-    <ul>
-      <li>Account data is retained while your account is active.</li>
-      <li>You can delete your account at any time from Settings → Delete Account. All personal data, connected social tokens, scheduled posts, and content cache are permanently removed within 7 days of deletion.</li>
-      <li>You can revoke Cadence's access to your TikTok account independently at <a href="https://www.tiktok.com/setting/security">tiktok.com/setting/security</a> under "Manage app permissions."</li>
-      <li>Stripe billing records are retained for 7 years per US tax law.</li>
-    </ul>
+      <h3 style="margin:2rem 0 .5rem">4. Data retention and deletion</h3>
+      <ul style="margin-left:1.5rem;line-height:1.8">
+        <li>Account data is retained while your account is active.</li>
+        <li>You can delete your account at any time from Settings → Delete Account. All personal data, connected tokens, scheduled posts, and content cache are permanently removed within 7 days.</li>
+        <li>You can revoke Cadence's access to your TikTok account independently at <a href="https://www.tiktok.com/setting/security" style="color:var(--sky-deep)">tiktok.com/setting/security</a> under "Manage app permissions."</li>
+        <li>Stripe billing records are retained for 7 years per US tax law.</li>
+      </ul>
 
-    <h2>5. Your rights</h2>
-    <p>Under GDPR (EU), CCPA (California), and similar frameworks, you have the right to:</p>
-    <ul>
-      <li>Access the personal data we hold about you</li>
-      <li>Correct inaccurate data</li>
-      <li>Delete your data</li>
-      <li>Export your data in a portable format</li>
-      <li>Object to processing</li>
-    </ul>
-    <p>Submit any request to <a href="mailto:jakedouglas@biggerdreamsco.com">jakedouglas@biggerdreamsco.com</a>. We respond within 30 days.</p>
+      <h3 style="margin:2rem 0 .5rem">5. Your rights</h3>
+      <p>Under GDPR (EU), CCPA (California), and similar frameworks, you have the right to access, correct, delete, export, or restrict processing of your data. Submit any request to <a href="mailto:jakedouglas@biggerdreamsco.com" style="color:var(--sky-deep)">jakedouglas@biggerdreamsco.com</a>. We respond within 30 days.</p>
 
-    <h2>6. Children</h2>
-    <p>Cadence is not directed at and does not knowingly collect data from anyone under 13 (or 16 in the EU). If you believe a child has provided us data, contact us and we will delete it.</p>
+      <h3 style="margin:2rem 0 .5rem">6. Children</h3>
+      <p>Cadence is not directed at and does not knowingly collect data from anyone under 13 (or 16 in the EU). If you believe a child has provided us data, contact us and we will delete it.</p>
 
-    <h2>7. Security</h2>
-    <ul>
-      <li>All traffic encrypted in transit via TLS 1.2+</li>
-      <li>OAuth tokens and sensitive credentials encrypted at rest with AES-256</li>
-      <li>Passwords hashed with bcrypt (cost factor 12)</li>
-      <li>No shared credentials — every user gets isolated token storage</li>
-      <li>Annual security review</li>
-    </ul>
+      <h3 style="margin:2rem 0 .5rem">7. Security</h3>
+      <ul style="margin-left:1.5rem;line-height:1.8">
+        <li>TLS 1.2+ on all traffic</li>
+        <li>OAuth tokens encrypted at rest with AES-256 (Fernet)</li>
+        <li>Passwords hashed with bcrypt (cost factor 12)</li>
+        <li>Per-user isolated token storage</li>
+        <li>Annual security review</li>
+      </ul>
 
-    <h2>8. International transfers</h2>
-    <p>Cadence is operated from Los Angeles, California, USA. By using the service you consent to the transfer of your data to the United States.</p>
+      <h3 style="margin:2rem 0 .5rem">8. International transfers</h3>
+      <p>Cadence is operated from Los Angeles, California, USA. By using the service you consent to the transfer of your data to the United States.</p>
 
-    <h2>9. Changes to this policy</h2>
-    <p>We may update this policy. Material changes will be announced by email at least 30 days before they take effect. The "Last updated" date at the top of this document always reflects the current version.</p>
+      <h3 style="margin:2rem 0 .5rem">9. Changes to this policy</h3>
+      <p>Material changes will be announced by email at least 30 days before they take effect. The "Last updated" date at the top reflects the current version.</p>
 
-    <h2>10. Contact</h2>
-    <p>For privacy questions or to exercise your data rights: <a href="mailto:jakedouglas@biggerdreamsco.com">jakedouglas@biggerdreamsco.com</a>.</p>
-    <p>Cadence is operated by Bigger Dreams, LLC. Mailing address: 101 E 17th St, Los Angeles, CA 90015.</p>
+      <h3 style="margin:2rem 0 .5rem">10. Contact</h3>
+      <p>Privacy questions or to exercise your data rights: <a href="mailto:jakedouglas@biggerdreamsco.com" style="color:var(--sky-deep)">jakedouglas@biggerdreamsco.com</a>.</p>
+      <p style="margin-top:.5rem;color:var(--text-dim)">Cadence is operated by Bigger Dreams, LLC. Mailing address: 101 E 17th St, Los Angeles, CA 90015.</p>
+    </div>
   </div>
 </section>
 {% endblock %}

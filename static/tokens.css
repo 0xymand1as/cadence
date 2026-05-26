@@ -1,0 +1,451 @@
+/* ─────────────────────────────────────────────────────────────────────
+   BD + WYWH DESIGN TOKENS — v3.3 (locked 2026-05-22)
+   v3.3 adds lightbox modal + editorial transition banner utilities,
+   surfaced from Music page v4 review.
+   v3.2 adds photo-marquee + photo-divider + cinematic-backdrop section utilities,
+   surfaced from Music page v3 review.
+   v3.1 added dark-bg text-shadow utilities + image-tile gradient utility,
+   surfaced from Music niche page first ship.
+   v3 base — single sky-blue palette. Drop into top of any BD or WYWH stylesheet.
+   Source of truth: ~/.claude/skills/bd-design/BIGGER_DREAMS.md
+
+   v3 deltas vs v2:
+   - .cloud-halo utility added (§6.8) — replaces linear aurora + cyan
+     text-shadow on hero italics
+   - Glow vocabulary formalized (§6.9) — six approved homes, max two/page
+   - --cloud-halo-disc radial gradient token added
+   - .tier-strip + .tier-chip helpers (optional, only for tiered ladders)
+   ───────────────────────────────────────────────────────────────────── */
+
+/* ── FONT LOADING (paste in HTML <head>) ──────────────────────────────
+   <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800,900&display=swap" rel="stylesheet">
+   <link rel="preconnect" href="https://fonts.googleapis.com" />
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
+   Editorial use: request italic with normal weight, no axis settings.
+   ───────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── PRIMARY (sole BD accent) ───────────────────────────────── */
+  --sky:           #0EA5E9;
+  --sky-deep:      #0284C7;
+  --sky-bright:    #38BDF8;
+  --sky-soft:      rgba(14, 165, 233, 0.12);
+  --sky-glow:      rgba(56, 189, 248, 0.35);
+
+  /* ── NEUTRALS (cool-leaning) ────────────────────────────────── */
+  --bg-white:      #FFFFFF;
+  --bg-cool:       #F8FAFC;
+  --bg-card:       #F1F5F9;
+  --rule:          #E2E8F0;
+  --text:          #0F172A;
+  --text-dim:      #475569;
+  --muted:         #94A3B8;
+
+  /* ── DARK CHROME ────────────────────────────────────────────── */
+  --dark:          #0B1220;
+
+  /* ── FUNCTIONAL STATES (NOT brand) ──────────────────────────── */
+  --success:       #16A34A;
+  --warning:       #F59E0B;
+  --danger:        #DC2626;
+
+  /* ── TYPOGRAPHY ─────────────────────────────────────────────── */
+  --font-display:    'Cabinet Grotesk', sans-serif;
+  --font-body:       'Plus Jakarta Sans', sans-serif;
+  --font-editorial:  'Spectral', 'Georgia', serif;
+  /* Spectral pairs at weight 400 italic for pulls; 500 italic for emphasis. */
+
+  /* ── POP + GLIMMER (max 2 per artifact) ─────────────────────── */
+  --glow-sky:        0 0 24px rgba(56, 189, 248, 0.35);
+  --glow-sky-soft:   0 0 12px rgba(14, 165, 233, 0.20);
+  --glow-sky-tight:  0 0 8px rgba(56, 189, 248, 0.40);
+
+  --gradient-sky:        linear-gradient(135deg, #0EA5E9 0%, #38BDF8 50%, #7DD3FC 100%);
+  --gradient-sky-deep:   linear-gradient(135deg, #0284C7 0%, #0EA5E9 100%);
+  --gradient-dark-chrome:linear-gradient(180deg, #0B1220 0%, #0F172A 100%);
+  --gradient-shine:      linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%);
+
+  /* DEPRECATED v3 — linear aurora retired for hero italics. Use .cloud-halo instead.
+     Kept for any legacy artifact that still references it. */
+  --gradient-aurora:     linear-gradient(135deg, #0EA5E9 0%, #38BDF8 30%, #FFFFFF 50%, #38BDF8 70%, #0EA5E9 100%);
+
+  /* v3 — cloud halo radial disc, sits behind solid white Instrument Serif italic */
+  --cloud-halo-disc:     radial-gradient(ellipse 70% 80% at 50% 50%,
+                           rgba(56,189,248,0.55) 0%,
+                           rgba(125,211,252,0.32) 30%,
+                           rgba(14,165,233,0.16) 60%,
+                           transparent 80%);
+
+  --sparkle-bg:    radial-gradient(circle at top right, rgba(56,189,248,0.18), transparent 50%),
+                   radial-gradient(circle at bottom left, rgba(14,165,233,0.10), transparent 50%);
+
+  /* ── MOTION CURVES ──────────────────────────────────────────── */
+  --ease-out-soft:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:    cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-pop:       cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  --dur-snappy:     0.18s;
+  --dur-default:    0.32s;
+  --dur-slow:       0.6s;
+
+  /* ── RADIUS ─────────────────────────────────────────────────── */
+  --r-sm:  4px;
+  --r-md:  8px;
+  --r-lg:  12px;
+  --r-xl:  20px;
+  --r-full: 999px;
+}
+
+/* ── FROSTED-GLASS UTILITY (compose, can't be a single var) ───── */
+.frosted {
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.frosted-dark {
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  background: rgba(11, 18, 32, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── SHINE SWEEP UTILITY (on hover or interval) ────────────────── */
+.shine { position: relative; overflow: hidden; }
+.shine::after {
+  content: ""; position: absolute; inset: 0;
+  background: var(--gradient-shine);
+  transform: translateX(-100%);
+  transition: transform 0.6s var(--ease-out-soft);
+  pointer-events: none;
+}
+.shine:hover::after { transform: translateX(100%); }
+
+/* ── EDITORIAL ITALIC + SKY UNDERLINE ─────────────────────────── */
+.editorial {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  position: relative;
+}
+.editorial::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: -2px; height: 3px;
+  background: var(--sky);
+  border-radius: 2px;
+  opacity: 0.6;
+  transform: skewX(-8deg);
+}
+
+/* ── CLOUD HALO — v3 canonical hero italic (§6.8) ─────────────── */
+/* Solid white Instrument Serif italic word + soft blue radial disc behind.
+   Replaces --gradient-aurora text fill + monochrome cyan text-shadow on hero italics. */
+.cloud-halo {
+  position: relative; display: inline-block;
+  font-family: var(--font-editorial); font-style: italic; font-weight: 400;
+  color: #fff;
+  padding: 0 0.15em;
+}
+.cloud-halo::before {
+  content: ""; position: absolute;
+  inset: -25% -15% -25% -15%; z-index: -1;
+  background: var(--cloud-halo-disc);
+  filter: blur(8px);
+  border-radius: 50%;
+}
+/* Light-bg edge-case variant — darker text + softer disc */
+.cloud-halo.on-light { color: var(--text); }
+.cloud-halo.on-light::before {
+  background: radial-gradient(ellipse 70% 80% at 50% 50%,
+    rgba(56,189,248,0.30) 0%,
+    rgba(125,211,252,0.18) 30%,
+    rgba(14,165,233,0.09) 60%,
+    transparent 80%);
+}
+
+/* ── GLOW VOCAB HELPERS — v3 (§6.9, six approved homes) ───────── */
+/* 01 CTA — apply box-shadow: var(--glow-sky-tight) directly on .btn-primary */
+/* 02 Section orb (anchor pip beside H2) */
+.gv-orb {
+  display: inline-block; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--sky-bright);
+  box-shadow: var(--glow-sky);
+}
+/* 03 ✓-tick bullet (inclusion list) */
+.gv-tick {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--sky); color: #fff;
+  font-weight: 800; font-size: 8pt; line-height: 1;
+  box-shadow: var(--glow-sky-tight);
+}
+/* 04 Active nav underbar */
+.gv-nav-bar {
+  display: block; width: 24px; height: 2px;
+  background: var(--sky); border-radius: 1px;
+  box-shadow: var(--glow-sky-warm);
+}
+/* 05 Feature price drop-shadow — apply .gv-price-glow to anchor-tier price element */
+.gv-price-glow { filter: drop-shadow(0 0 12px rgba(56,189,248,.35)); }
+/* 06 Image / video frame hover */
+.gv-frame:hover {
+  border: 1.5px solid var(--sky);
+  box-shadow: var(--glow-sky-warm), inset 0 0 18px rgba(14,165,233,.16);
+}
+
+/* ── PHOTO-FACE MARQUEE — v3.2 (WEB.md §4.5) ────────────────────── */
+.photo-marquee {
+  overflow: hidden; position: relative;
+  margin: 0 0 26px;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+}
+.photo-track     { display: flex; gap: 14px; white-space: nowrap; animation: marquee 50s linear infinite; }
+.photo-track-rev { animation: marquee-rev 60s linear infinite; }
+.photo-tile {
+  flex: none;
+  width: 96px; height: 96px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: 1px solid rgba(56,189,248,0.18);
+  position: relative;
+  transition: transform .32s var(--ease-out-soft),
+              border-color .32s var(--ease-out-soft),
+              box-shadow .32s var(--ease-out-soft);
+}
+.photo-tile img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: saturate(0.85) brightness(0.92);
+  transition: filter .32s var(--ease-out-soft);
+}
+.photo-tile:hover {
+  transform: translateY(-2px);
+  border-color: var(--sky-bright);
+  box-shadow: var(--glow-sky-warm);
+}
+.photo-tile:hover img { filter: saturate(1.0) brightness(1.0); }
+.photo-tile-wide { width: 220px; height: 138px; }
+@keyframes marquee     { from { transform: translateX(0); }    to { transform: translateX(-50%); } }
+@keyframes marquee-rev { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+
+/* ── PHOTO DIVIDER STRIP — v3.2 (WEB.md §4.7) ──────────────────── */
+.photo-divider {
+  background: var(--dark);
+  padding: 26px 0;
+  overflow: hidden;
+  position: relative;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+}
+
+/* ── CINEMATIC BACKDROP SECTION — v3.2 (WEB.md §4.6) ──────────── */
+/* Apply pattern on a `.section.section-dark` with isolated stacking.
+   bg video at z-0, overlay at z-1, container at z-2.
+   See WEB.md §4.6 for full markup. Utility classes below for the overlay layer
+   and dark-glass card variant. */
+.section-cinematic { position: relative; overflow: hidden; isolation: isolate; }
+.section-cinematic > video.cinematic-bg {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0.32;
+  filter: saturate(0.85) brightness(0.78) hue-rotate(-10deg);
+  pointer-events: none;
+}
+.section-cinematic > .cinematic-overlay {
+  position: absolute; inset: 0; z-index: 1;
+  background:
+    radial-gradient(ellipse at top right, rgba(56,189,248,0.14), transparent 55%),
+    radial-gradient(ellipse at bottom left, rgba(14,165,233,0.10), transparent 55%),
+    linear-gradient(180deg, rgba(11,18,32,0.78) 0%, rgba(11,18,32,0.92) 100%);
+  pointer-events: none;
+}
+.section-cinematic > .container { position: relative; z-index: 2; }
+.dark-glass-card {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  border: 1px solid rgba(56,189,248,0.18);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+/* ── LIGHTBOX MODAL — v3.3 (WEB.md §4.8) ────────────────────────── */
+.lightbox {
+  position: fixed; inset: 0; z-index: 9999;
+  display: none;
+  align-items: center; justify-content: center;
+  background: rgba(11,18,32,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 32px;
+  cursor: zoom-out;
+}
+.lightbox.open { display: flex; animation: lb-fade 0.32s var(--ease-out-soft); }
+.lightbox img {
+  max-width: 92vw; max-height: 88vh;
+  border-radius: var(--r-lg);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(56,189,248,0.22);
+  animation: lb-pop 0.42s var(--ease-out-soft);
+}
+.lightbox-close {
+  position: absolute; top: 24px; right: 28px;
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 50%;
+  color: #fff; font-size: 22px; line-height: 1;
+  cursor: pointer;
+  transition: background var(--dur-snappy) var(--ease-out-soft);
+}
+.lightbox-close:hover { background: rgba(56,189,248,0.25); }
+@keyframes lb-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lb-pop  { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+
+/* ── EDITORIAL TRANSITION BANNER — v3.3 (WEB.md §11.8) ──────────── */
+.editorial-banner {
+  position: relative; overflow: hidden; isolation: isolate;
+  padding: 64px 24px;
+  background: var(--dark);
+  text-align: center;
+}
+.editorial-banner-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 80% at 50% 50%, rgba(56,189,248,0.28), transparent 60%),
+    radial-gradient(ellipse at top right, rgba(125,211,252,0.10), transparent 55%),
+    radial-gradient(ellipse at bottom left, rgba(14,165,233,0.10), transparent 55%);
+  pointer-events: none; z-index: 0;
+}
+.editorial-banner .container { position: relative; z-index: 1; }
+.editorial-line {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(38px, 6vw, 72px);
+  letter-spacing: -0.025em; line-height: 1.05;
+  color: #fff; margin: 0;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.45);
+}
+.editorial-line em {
+  font-family: var(--font-editorial);
+  font-style: italic; font-weight: 400;
+  color: var(--sky-bright);
+  padding: 0 0.05em;
+}
+.editorial-cue {
+  display: inline-block;
+  font-family: var(--font-body); font-weight: 500;
+  font-size: 0.5em; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  vertical-align: middle;
+  margin-right: 0.4em;
+  transform: translateY(-0.4em);
+}
+
+/* ── DARK-BG TEXT-SHADOW UTILITIES — v3.1 (WEB.md §11) ────────── */
+/* Apply to any title/eyebrow/sub sitting on dark `--dark` bg w/ sparkle, photo,
+   or gradient overlay. Without these the section title goes mushy at the
+   antialiased edges. Two-stop title shadow = halo lift + crisp edge. */
+.text-shadow-dark-title {
+  text-shadow: 0 2px 24px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.6);
+}
+.text-shadow-dark-eyebrow,
+.text-shadow-dark-sub {
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* ── DARK-BG SECTION TEXT COLOR — v3.1.1 (2026-05-22 legibility lock) ──
+   Defensive cascade — fires on named dark-section classes WITHOUT requiring
+   the .section-dark co-class on HTML. Locked after gear-section "Cinema-grade
+   gear" + drops-section "Real brands" rendered dark-on-dark on /brands.
+   Pair w/ the text-shadow utilities above. */
+.section-dark .section-title,
+.gear-section .section-title,
+.drops-section .section-title,
+.cta-section .section-title { color: #fff; }
+
+.section-dark .section-title em,
+.gear-section .section-title em,
+.drops-section .section-title em,
+.cta-section .section-title em { color: var(--sky-bright); }
+
+.section-dark .section-eyebrow,
+.gear-section .section-eyebrow,
+.drops-section .section-eyebrow,
+.cta-section .section-eyebrow { color: var(--sky-bright); }
+
+.section-dark .section-sub,
+.gear-section .section-sub,
+.drops-section .section-sub,
+.cta-section .section-sub { color: rgba(255,255,255,0.78); }
+/* Strong variant for text DIRECTLY over photo/video (drop-tile titles) */
+.text-shadow-photo-title {
+  text-shadow: 0 2px 8px rgba(0,0,0,0.65), 0 1px 2px rgba(0,0,0,0.8);
+}
+.text-shadow-photo-eyebrow {
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+}
+
+/* ── IMAGE-TILE OVERLAY (DARK-bg context) — v3.1 (WEB.md §4.3) ── */
+/* The canonical 3-stop gradient for media tiles over dark sections. */
+.tile-gradient-dark {
+  background: linear-gradient(180deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(11,18,32,0.55) 60%,
+    rgba(11,18,32,0.95) 100%);
+}
+
+/* ── TIER-CHIP STRIP — OPTIONAL (§3.5, tiered ladders only) ───── */
+.tier-strip {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 5px; margin-bottom: 6px;
+}
+.tier-chip {
+  background: var(--bg-card); border: 1px solid var(--rule);
+  border-radius: var(--r-full); padding: 2px 0;
+  text-align: center;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 6.5pt; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text-dim);
+}
+.tier-chip.active {
+  background: var(--sky-soft); border-color: var(--sky);
+  color: var(--sky-deep);
+}
+
+/* ── GRADIENT TEXT UTILITY ────────────────────────────────────── */
+.gradient-text {
+  background: var(--gradient-sky);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── BD HQ "Mission Control" palette ──────────────────────────── */
+.bd-hq {
+  --bg-0:        #06090d;
+  --bg-1:        #0a0e14;
+  --bg-2:        #11161f;
+  --bg-3:        #1a212c;
+  --line:        #1e2735;
+  --line-2:      #2a3445;
+  --hq-text:     #e7ecf3;
+  --hq-text-dim: #8b96a8;
+  --hq-muted:    #5b6678;
+  --amber:       #ffb454;
+  --amber-2:     #ff8a3d;
+  --amber-soft:  rgba(255, 180, 84, 0.12);
+  --cyan:        #7dd3fc;
+  --cyan-2:      #38bdf8;
+  --cyan-soft:   rgba(125, 211, 252, 0.12);
+  --green:       #4ade80;
+  --red:         #f87171;
+  --yellow:      #facc15;
+  --glow-amber:  0 0 18px rgba(255, 180, 84, 0.18);
+  --glow-cyan:   0 0 18px rgba(125, 211, 252, 0.18);
+  --font-mono:   'JetBrains Mono', 'SF Mono', 'IBM Plex Mono', Menlo, monospace;
+  --font-sans:   -apple-system, 'Inter', 'Helvetica Neue', sans-serif;
+}

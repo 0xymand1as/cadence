@@ -1,36 +1,26 @@
 {% extends "base.html" %}
-
 {% block title %}Sign up — Cadence{% endblock %}
-
 {% block content %}
-<section class="hero" style="padding:80px 0 100px">
-  <div class="wrap" style="max-width:480px">
-    <div style="text-align:center;margin-bottom:32px">
-      <div class="eyebrow">Get Started</div>
-      <h1 style="font-size:42px">Create your <span class="italic-accent">Cadence</span> account.</h1>
-      <p class="hero-sub" style="font-size:16px;margin-top:14px">Free for 14 days. No credit card required.</p>
-    </div>
-
-    <form action="/signup" method="post" class="card" style="padding:40px">
-      <label style="display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px">Name</label>
-      <input type="text" name="name" required style="width:100%;padding:12px 14px;border:1px solid rgba(11,18,32,.12);border-radius:10px;font-family:var(--font-b);font-size:15px;margin-bottom:18px"/>
-
-      <label style="display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px">Email</label>
-      <input type="email" name="email" required style="width:100%;padding:12px 14px;border:1px solid rgba(11,18,32,.12);border-radius:10px;font-family:var(--font-b);font-size:15px;margin-bottom:18px"/>
-
-      <label style="display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px">Password</label>
-      <input type="password" name="password" required minlength="8" style="width:100%;padding:12px 14px;border:1px solid rgba(11,18,32,.12);border-radius:10px;font-family:var(--font-b);font-size:15px;margin-bottom:24px"/>
-
-      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">Create account →</button>
-
-      <p style="text-align:center;margin-top:18px;font-size:13px;color:var(--ink-mute)">
-        By creating an account you agree to our <a href="/terms" style="color:var(--sky-deep)">Terms</a> and <a href="/privacy" style="color:var(--sky-deep)">Privacy Policy</a>.
-      </p>
+<section class="section-sm">
+  <div class="form-card">
+    <div class="eyebrow">Free beta</div>
+    <h2 style="margin-bottom:1rem">Create your account</h2>
+    <p style="color:var(--text-dim);margin-bottom:2rem">No credit card. Connect your TikTok in the next step.</p>
+    <form method="POST">
+      <div class="form-row">
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" required autocomplete="email" autofocus>
+      </div>
+      <div class="form-row">
+        <label for="password">Password</label>
+        <input type="password" name="password" id="password" required minlength="8" autocomplete="new-password">
+        <div class="form-hint">8+ characters.</div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%">Create account</button>
     </form>
-
-    <p style="text-align:center;margin-top:24px;font-size:14px;color:var(--ink-soft)">
-      Already have an account? <a href="/login" style="color:var(--sky-deep);font-weight:600">Sign in</a>
-    </p>
+    <div style="margin-top:1.5rem;font-size:.9rem;color:var(--text-dim);text-align:center">
+      Already have one? <a href="{{ url_for('login') }}" style="color:var(--sky-deep);font-weight:600">Sign in</a>
+    </div>
   </div>
 </section>
 {% endblock %}

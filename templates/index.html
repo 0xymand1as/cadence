@@ -1,141 +1,80 @@
 {% extends "base.html" %}
 
-{% block title %}Cadence — TikTok scheduling for music industry rollouts{% endblock %}
-
 {% block content %}
-
-<!-- HERO w/ Cloud halo -->
-<section class="hero">
-  <div class="wrap">
-    <div class="hero-inner">
-      <div class="eyebrow">A Bigger Dreams Product</div>
-      <h1>The TikTok scheduler<br/><span class="italic-accent">music rollouts</span> deserve.</h1>
-      <p class="hero-sub">
-        Built for production companies, indie labels, and artists coordinating posts across multiple TikTok accounts during release windows. Skip the same-hour collisions. Amplify the cadence.
-      </p>
-      <div class="hero-cta-row">
-        <a href="/signup" class="btn btn-primary">Start free →</a>
-        <a href="/features" class="btn btn-ghost">See how it works</a>
-      </div>
+<section style="position:relative;padding:7rem 0 5rem;overflow:hidden">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%, var(--sky-glow), transparent 60%);opacity:.5;pointer-events:none"></div>
+  <div class="wrap" style="position:relative;text-align:center">
+    <div class="eyebrow">A Bigger Dreams product · TikTok Marketing Partner application in review</div>
+    <h1 style="margin-bottom:1.25rem;max-width:18ch;margin-inline:auto">
+      Schedule TikTok across <em style="font-family:'Spectral',serif;font-style:italic;font-weight:500">every brand</em> in your roster.
+    </h1>
+    <p class="lead" style="margin-inline:auto;margin-bottom:2.5rem">
+      Built for music production companies, indie labels, and artist managers coordinating posts across show channels, artist accounts, and label handles during release windows.
+    </p>
+    <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+      <a class="btn btn-primary" href="{{ url_for('signup') }}">Get started — free beta</a>
+      <a class="btn btn-ghost" href="{{ url_for('features') }}">See features</a>
     </div>
   </div>
 </section>
 
-<!-- TRUST STRIP -->
-<section class="trust">
+<section class="section" style="background:var(--bg-cool)">
   <div class="wrap">
-    <div class="trust-label">Built by the team behind</div>
-    <div class="trust-marks">
-      <span>WISH YOU WERE HERE</span>
-      <span>BIGGER DREAMS</span>
-      <span>HBO · PATRON · ADIDAS · SOUNDCLOUD</span>
+    <div style="text-align:center;margin-bottom:3rem">
+      <div class="eyebrow">Built for the rollout window</div>
+      <h2>The scheduling tool generic apps don't ship.</h2>
     </div>
-  </div>
-</section>
-
-<!-- PROBLEM/SOLUTION grid -->
-<section class="section">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow">Why Cadence</div>
-      <h2>Generic schedulers weren't built for <span class="italic-accent">release cycles.</span></h2>
-      <p class="section-sub">Music rollouts have rules: artist, label, show, and production house all post during the same week. Same-hour collisions kill reach. Staggered cadence amplifies it. Cadence is the only scheduler that understands the difference.</p>
-    </div>
-    <div class="grid-3">
+    <div class="grid grid-3">
       <div class="card">
-        <div class="card-icon">⊞</div>
         <h3>Multi-brand calendar</h3>
-        <p>Connect every TikTok account in your rollout — artist, label, show, production company — to one unified calendar. See collisions before they happen.</p>
+        <p>Connect every TikTok in your rollout — artist, label, show, production company. One unified calendar. No same-hour collisions.</p>
       </div>
       <div class="card">
-        <div class="card-icon">↻</div>
         <h3>Release-cycle scheduling</h3>
-        <p>Schedule a 7-day, 14-day, or 30-day rollout across multiple accounts in one operation. Cadence enforces minimum gaps so no two posts step on each other.</p>
+        <p>Schedule a 7, 14, or 30-day rollout across every connected account in one operation. Drop week aware.</p>
       </div>
       <div class="card">
-        <div class="card-icon">✎</div>
-        <h3>Per-brand voice</h3>
-        <p>Caption + hashtag templates per connected account. The label's voice isn't the artist's. The show's voice isn't the production house's. Cadence keeps each lane clean.</p>
+        <h3>Native publishing</h3>
+        <p>Direct upload via TikTok's official Content Posting API. Auto-publishes at scheduled time. No phone reminders, no manual steps.</p>
       </div>
       <div class="card">
-        <div class="card-icon">↥</div>
-        <h3>Direct publish</h3>
-        <p>Built on TikTok's official Content Posting API. Videos publish directly at the scheduled time — no notifications, no manual taps, no drafts queue.</p>
+        <h3>Brand-aware captions</h3>
+        <p>Per-account caption templates so the show feed, artist account, and label handle each speak in their own voice.</p>
       </div>
       <div class="card">
-        <div class="card-icon">⌗</div>
-        <h3>Performance pulse</h3>
-        <p>View counts, likes, comments pulled back automatically after posts publish. See what cadence worked. Tune the next rollout.</p>
+        <h3>Performance pull-back</h3>
+        <p>Views, likes, comments synced from each connected account after posts go live. Inform the next rollout.</p>
       </div>
       <div class="card">
-        <div class="card-icon">⇄</div>
         <h3>Team handoff</h3>
-        <p>Production company stages posts for the artist's account. Artist approves. Cadence publishes. No copy-paste captions in DMs at 2 AM.</p>
+        <p>Production company stages posts for an artist's account. Artist approves. Cadence publishes at the scheduled time.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- CASE STUDY: WYWH dark section -->
-<section class="dark-section">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow">The Reference Customer</div>
-      <h2>How <span class="italic-accent">Wish You Were Here</span> uses Cadence.</h2>
-      <p class="section-sub">WYWH is a Los Angeles live-music session series produced by Bigger Dreams. Every episode involves coordinated posts across the show's TikTok, the featured artist's TikTok, and our production company's TikTok during a 7-day release window. Cadence was built to solve that — for ourselves first, now for everyone running the same play.</p>
-    </div>
-    <div class="grid-3" style="margin-top:48px">
-      <div class="dark-card">
-        <h3 style="margin-bottom:12px">Episode drop day</h3>
-        <p>Show account leads with full episode reveal at 12 PM PT. Artist account follows with their performance clip at 4 PM. Production house drops behind-the-scenes at 8 PM. Three accounts, one campaign, zero collisions.</p>
-      </div>
-      <div class="dark-card">
-        <h3 style="margin-bottom:12px">Trailer week</h3>
-        <p>7 days before drop, Cadence schedules teaser clips across 4 accounts on a staggered 12-hour cadence. The algorithm sees consistent activity. The audience sees momentum.</p>
-      </div>
-      <div class="dark-card">
-        <h3 style="margin-bottom:12px">Post-drop tail</h3>
-        <p>3 days after drop, performance dashboard surfaces the top-performing clip per account. Cadence drafts the next-rollout brief from what worked.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- HOW IT WORKS -->
 <section class="section">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow">How It Works</div>
-      <h2>Three steps from sign-up to scheduled.</h2>
+  <div class="wrap" style="display:grid;gap:3rem;grid-template-columns:1fr 1fr;align-items:center">
+    <div>
+      <div class="eyebrow">The flagship customer</div>
+      <h2 style="margin-bottom:1.25rem">Wish You Were Here.</h2>
+      <p class="lead" style="margin-bottom:1.5rem">
+        Our live-music session series in Los Angeles. Every episode rolls out across three TikToks — the show, the featured artist, and our production company — over a 7-day window. Cadence was built to coordinate that. Now we're opening it up.
+      </p>
+      <a class="btn btn-ghost" href="https://wywh-la.com">Visit WYWH →</a>
     </div>
-    <div class="grid-3">
-      <div class="card">
-        <div class="card-icon">1</div>
-        <h3>Connect your TikToks</h3>
-        <p>Sign in once per account via TikTok's official OAuth. Add as many accounts as your rollout covers. No password sharing. No screen-mirroring tools.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">2</div>
-        <h3>Upload your videos</h3>
-        <p>Drag videos in, write captions (or use brand templates), set the schedule. Cadence enforces gap rules across all your accounts automatically.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">3</div>
-        <h3>Cadence publishes</h3>
-        <p>At each scheduled time, the post fires through TikTok's Content Posting API. You get a confirmation. The post goes live. No human in the loop.</p>
-      </div>
+    <div style="background:linear-gradient(135deg,var(--sky-bright),var(--sky-deep));aspect-ratio:4/3;border-radius:24px;display:flex;align-items:center;justify-content:center;font-family:'Spectral',serif;font-style:italic;font-size:2.5rem;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.25)">
+      live music. on schedule.
     </div>
   </div>
 </section>
 
-<!-- CTA STRIP -->
-<section class="cta-strip">
-  <div class="wrap">
-    <div class="eyebrow" style="color:rgba(255,255,255,.85);text-shadow:0 1px 4px rgba(0,0,0,.2)">Ready to roll out?</div>
-    <h2 style="margin-bottom:0">Start your first 10 posts free.</h2>
-    <p class="section-sub">No credit card. Connect a TikTok account, schedule your first rollout, see the calendar in action.</p>
-    <a href="/signup" class="btn btn-primary">Get started →</a>
+<section class="section" style="background:var(--dark);color:#fff">
+  <div class="wrap" style="text-align:center">
+    <div class="eyebrow" style="color:var(--sky-bright)">Bigger Dreams · Los Angeles</div>
+    <h2 style="color:#fff;margin-bottom:1rem">Ready to schedule your next rollout?</h2>
+    <p style="color:#94a3b8;max-width:50ch;margin:0 auto 2rem">Free beta for music industry teams. No credit card. Pro tier coming when TikTok approves our API.</p>
+    <a class="btn btn-primary" href="{{ url_for('signup') }}">Create your free account</a>
   </div>
 </section>
-
 {% endblock %}

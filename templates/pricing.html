@@ -1,120 +1,50 @@
 {% extends "base.html" %}
-
 {% block title %}Pricing — Cadence{% endblock %}
-{% block desc %}Cadence pricing. Free tier to start. Pro for serious artists. Studio for production companies.{% endblock %}
-
 {% block content %}
-
-<section class="hero" style="padding:80px 0 60px">
-  <div class="wrap">
-    <div class="hero-inner">
-      <div class="eyebrow">Pricing</div>
-      <h1>Built for <span class="italic-accent">every stage</span> of a rollout.</h1>
-      <p class="hero-sub">Start free. Upgrade when your roster grows. Every tier publishes directly via TikTok's official API.</p>
+<section class="section">
+  <div class="wrap" style="text-align:center;margin-bottom:3rem">
+    <div class="eyebrow">Pricing</div>
+    <h2>Free during private beta. Paid tiers ship when TikTok approves the API.</h2>
+    <p class="lead" style="margin:1rem auto 0">Music industry pricing. Pay per connected account, not per seat.</p>
+  </div>
+  <div class="wrap grid grid-3">
+    <div class="card">
+      <h3>Free Beta</h3>
+      <div style="font-size:2.5rem;font-weight:800;font-family:'Cabinet Grotesk',sans-serif;margin:.5rem 0">$0</div>
+      <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:1.5rem">Until API approval</p>
+      <ul style="list-style:none;font-size:.95rem;color:var(--text-dim);line-height:2;padding:0">
+        <li>✓ Unlimited connected accounts</li>
+        <li>✓ Unlimited scheduled posts</li>
+        <li>✓ Multi-brand calendar</li>
+        <li>✓ Email support</li>
+      </ul>
+      <a class="btn btn-primary" href="{{ url_for('signup') }}" style="width:100%;margin-top:1.5rem">Start free</a>
+    </div>
+    <div class="card" style="border-color:var(--sky);position:relative">
+      <div style="position:absolute;top:-12px;right:1.5rem;background:var(--sky);color:#fff;padding:.2rem .7rem;border-radius:999px;font-size:.7rem;font-weight:700;letter-spacing:.05em">COMING SOON</div>
+      <h3>Pro</h3>
+      <div style="font-size:2.5rem;font-weight:800;font-family:'Cabinet Grotesk',sans-serif;margin:.5rem 0">$29<span style="font-size:1rem;font-weight:500;color:var(--text-dim)">/mo</span></div>
+      <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:1.5rem">Up to 5 connected accounts</p>
+      <ul style="list-style:none;font-size:.95rem;color:var(--text-dim);line-height:2;padding:0">
+        <li>✓ Performance analytics</li>
+        <li>✓ Caption A/B testing</li>
+        <li>✓ Release-cycle templates</li>
+        <li>✓ Priority support</li>
+      </ul>
+      <button class="btn btn-ghost" style="width:100%;margin-top:1.5rem" disabled>Available at launch</button>
+    </div>
+    <div class="card">
+      <h3>Studio</h3>
+      <div style="font-size:2.5rem;font-weight:800;font-family:'Cabinet Grotesk',sans-serif;margin:.5rem 0">$99<span style="font-size:1rem;font-weight:500;color:var(--text-dim)">/mo</span></div>
+      <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:1.5rem">Up to 20 connected accounts</p>
+      <ul style="list-style:none;font-size:.95rem;color:var(--text-dim);line-height:2;padding:0">
+        <li>✓ Everything in Pro</li>
+        <li>✓ Team handoff workflow</li>
+        <li>✓ Artist approval flow</li>
+        <li>✓ Phone support</li>
+      </ul>
+      <button class="btn btn-ghost" style="width:100%;margin-top:1.5rem" disabled>Available at launch</button>
     </div>
   </div>
 </section>
-
-<section class="section" style="padding-top:20px">
-  <div class="wrap">
-    <div class="grid-3">
-
-      <!-- FREE -->
-      <div class="card">
-        <div class="eyebrow" style="color:var(--ink-mute)">Free</div>
-        <h3 style="font-size:36px;margin-bottom:8px">$0<span style="font-size:16px;color:var(--ink-mute);font-weight:500"> /month</span></h3>
-        <p style="font-size:14px;color:var(--ink-mute);margin-bottom:0">For solo artists testing the waters.</p>
-        <ul class="ticks">
-          <li>1 connected TikTok account</li>
-          <li>10 scheduled posts / month</li>
-          <li>Direct publish via TT API</li>
-          <li>Basic performance dashboard</li>
-          <li>Email support</li>
-        </ul>
-        <a href="/signup" class="btn btn-ghost" style="width:100%;justify-content:center">Start free</a>
-      </div>
-
-      <!-- PRO (featured) -->
-      <div class="card" style="border:2px solid var(--sky);box-shadow:0 24px 60px rgba(14,165,233,.18);position:relative">
-        <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--sky-bright),var(--sky-deep));color:#fff;padding:6px 16px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 8px 24px rgba(14,165,233,.4)">Most popular</div>
-        <div class="eyebrow">Pro</div>
-        <h3 style="font-size:36px;margin-bottom:8px">$29<span style="font-size:16px;color:var(--ink-mute);font-weight:500"> /month</span></h3>
-        <p style="font-size:14px;color:var(--ink-mute);margin-bottom:0">For working artists + indie labels.</p>
-        <ul class="ticks">
-          <li>5 connected TikTok accounts</li>
-          <li>Unlimited scheduled posts</li>
-          <li>Multi-brand calendar</li>
-          <li>Per-account caption templates</li>
-          <li>Release-cycle scheduling (7/14/30-day)</li>
-          <li>Full performance dashboard</li>
-          <li>Priority support</li>
-        </ul>
-        <a href="/signup" class="btn btn-primary" style="width:100%;justify-content:center">Start free trial</a>
-      </div>
-
-      <!-- STUDIO -->
-      <div class="card">
-        <div class="eyebrow">Studio</div>
-        <h3 style="font-size:36px;margin-bottom:8px">$99<span style="font-size:16px;color:var(--ink-mute);font-weight:500"> /month</span></h3>
-        <p style="font-size:14px;color:var(--ink-mute);margin-bottom:0">For production companies + label rosters.</p>
-        <ul class="ticks">
-          <li>20 connected TikTok accounts</li>
-          <li>Unlimited scheduled posts</li>
-          <li>Multi-user team workspace</li>
-          <li>Approval workflow (artist signs off)</li>
-          <li>Brand-voice templates per account</li>
-          <li>Slack + email post notifications</li>
-          <li>Dedicated onboarding call</li>
-          <li>Priority support</li>
-        </ul>
-        <a href="/signup" class="btn btn-ghost" style="width:100%;justify-content:center">Start free trial</a>
-      </div>
-
-    </div>
-
-    <p style="text-align:center;color:var(--ink-mute);font-size:14px;margin-top:40px">
-      Need more than 20 accounts? <a href="mailto:jakedouglas@biggerdreamsco.com" style="color:var(--sky-deep);font-weight:600">Contact us</a> for enterprise pricing.
-    </p>
-  </div>
-</section>
-
-<!-- FAQ -->
-<section class="section" style="background:var(--paper-2);padding:80px 0">
-  <div class="wrap" style="max-width:780px">
-    <div class="section-head">
-      <div class="eyebrow">Pricing FAQ</div>
-      <h2>Questions, answered.</h2>
-    </div>
-
-    <div style="display:flex;flex-direction:column;gap:18px">
-      <div class="card">
-        <h3 style="font-size:18px;margin-bottom:8px">How does the free trial work?</h3>
-        <p>14-day full access to your chosen tier. No credit card required. Downgrade to Free or cancel anytime — no charges.</p>
-      </div>
-      <div class="card">
-        <h3 style="font-size:18px;margin-bottom:8px">What's a "connected TikTok account"?</h3>
-        <p>Each unique TikTok handle you connect via OAuth. If you manage 3 artists, that's 3 accounts. The Pro tier covers up to 5; Studio covers up to 20.</p>
-      </div>
-      <div class="card">
-        <h3 style="font-size:18px;margin-bottom:8px">Can I cancel anytime?</h3>
-        <p>Yes. Cancel from Settings → Billing. Your subscription stays active until the end of the current billing period; no pro-rated refunds.</p>
-      </div>
-      <div class="card">
-        <h3 style="font-size:18px;margin-bottom:8px">Do you support Instagram / YouTube / Facebook?</h3>
-        <p>TikTok is our flagship platform today. Instagram + YouTube + Facebook support is on the roadmap for Q4 2026.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CTA -->
-<section class="cta-strip">
-  <div class="wrap">
-    <div class="eyebrow" style="color:rgba(255,255,255,.85);text-shadow:0 1px 4px rgba(0,0,0,.2)">Ready when you are</div>
-    <h2 style="margin-bottom:0">Free for 14 days. No card required.</h2>
-    <p class="section-sub">Connect a TikTok account in 30 seconds.</p>
-    <a href="/signup" class="btn btn-primary">Start free →</a>
-  </div>
-</section>
-
 {% endblock %}
