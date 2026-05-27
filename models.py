@@ -2,9 +2,9 @@
 Cadence — SQLAlchemy models.
 
 Tables:
-  users          — email + bcrypt password hash + created_at
-  tt_accounts    — per-user connected TikTok account (encrypted tokens)
-  scheduled_posts — queue of scheduled videos (status: queued | publishing | posted | failed)
+  users           — email + bcrypt password hash + created_at + last_login_at
+  tt_accounts     — per-user connected TikTok account (encrypted tokens)
+  scheduled_posts — queue of scheduled videos (status: queued | publishing | posted | failed | cancelled)
 """
 from __future__ import annotations
 
@@ -26,6 +26,7 @@ class User(UserMixin, db.Model):
     email         = db.Column(db.String(254), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     created_at    = db.Column(db.DateTime, nullable=False, default=_utcnow)
+    last_login_at = db.Column(db.DateTime)
 
     tt_accounts     = db.relationship("TTAccount",     backref="user", lazy=True,
                                        cascade="all, delete-orphan")
@@ -57,6 +58,7 @@ class ScheduledPost(db.Model):
     tt_account_id   = db.Column(db.Integer, db.ForeignKey("tt_accounts.id"), nullable=False, index=True)
     video_filename  = db.Column(db.String(255), nullable=False)
     video_blob      = db.Column(db.LargeBinary, nullable=False)  # held in DB; OK for review-stage volume
+    video_size      = db.Column(db.Integer, default=0)           # bytes — cheap query w/o LENGTH(blob)
     caption         = db.Column(db.Text, default="")
     scheduled_at    = db.Column(db.DateTime, nullable=False, index=True)
     status          = db.Column(db.String(32), nullable=False, default="queued", index=True)

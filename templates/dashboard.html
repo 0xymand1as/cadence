@@ -1,67 +1,158 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — Cadence{% endblock %}
+
+{% block head_extra %}
+<style>
+  .dash-shell{max-width:1200px;margin:0 auto;padding:2rem 1.5rem 4rem}
+  .next-row{display:flex;align-items:center;gap:.55rem;font-size:.92rem;color:var(--text-dim);margin-top:.4rem}
+  .next-row .num{font-weight:700;color:var(--text)}
+  .table-card{background:#fff;border:1px solid var(--rule);border-radius:18px;overflow:hidden;margin-top:1.5rem}
+  .table-head{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;border-bottom:1px solid var(--rule);background:#fff}
+  .table-head h3{margin:0;font-size:1rem}
+  .table-head .muted{font-size:.85rem}
+  .qcap{display:block;font-size:.86rem;color:var(--text);max-width:340px;line-height:1.4}
+  .qmeta{font-size:.78rem;color:var(--text-dim);margin-top:.18rem}
+  .qtime{font-size:.86rem;color:var(--text);font-weight:600}
+  .qtime-sub{font-size:.74rem;color:var(--text-dim);margin-top:.1rem}
+
+  @media (max-width:900px){
+    .dash-shell{padding:1.5rem 1rem 5.5rem}
+  }
+  @media (max-width:700px){
+    /* Hide caption column on narrow screens — keep status / acct / time */
+    .queue-table th:nth-child(4),.queue-table td:nth-child(4){display:none}
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="section-sm">
-  <div class="wrap" style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:2rem;gap:1rem;flex-wrap:wrap">
+<div class="dash-shell">
+
+  <div class="page-head">
     <div>
       <div class="eyebrow">Dashboard</div>
-      <h2>Welcome, {{ current_user.email }}.</h2>
+      <h2>Welcome back.</h2>
+      <div class="muted" style="font-size:.92rem;margin-top:.35rem">Signed in as {{ current_user.email }}.</div>
     </div>
-    <div style="display:flex;gap:.6rem;flex-wrap:wrap">
-      <a class="btn btn-ghost" href="{{ url_for('accounts') }}">Accounts ({{ accts|length }})</a>
-      {% if accts %}<a class="btn btn-primary" href="{{ url_for('schedule') }}">Schedule a post</a>{% else %}<a class="btn btn-primary" href="{{ url_for('connect') }}">Connect TikTok</a>{% endif %}
+    <div style="display:flex;gap:.55rem;flex-wrap:wrap">
+      <a class="btn btn-ghost" href="{{ url_for('accounts') }}">Accounts</a>
+      {% if accts %}
+        <a class="btn btn-primary" href="{{ url_for('schedule') }}">Schedule a post</a>
+      {% else %}
+        <a class="btn btn-primary" href="{{ url_for('connect') }}">Connect TikTok</a>
+      {% endif %}
     </div>
   </div>
 
-  <div class="wrap">
-    {% if not accts %}
-    <div class="card" style="text-align:center;padding:3rem 2rem">
-      <h3 style="margin-bottom:.75rem">Connect your first TikTok account</h3>
-      <p style="color:var(--text-dim);margin-bottom:1.5rem;max-width:50ch;margin-inline:auto">
-        Connect any TikTok account you manage. You can connect multiple — one for each artist, label, or show in your rollout.
-      </p>
-      <a class="btn btn-primary" href="{{ url_for('connect') }}">Connect TikTok →</a>
+  {# ── KPI strip ────────────────────────────────────────── #}
+  <div class="grid grid-kpi">
+    <div class="kpi kpi-primary">
+      <div class="kpi-accent"></div>
+      <div class="kpi-label">Scheduled · next 7 days</div>
+      <div class="kpi-value num">{{ kpi_scheduled }}</div>
+      <div class="kpi-meta">Pending publish across all accounts</div>
     </div>
-    {% else %}
-      <h3 style="margin-bottom:1rem">Scheduled posts</h3>
-      {% if not queue %}
-      <div class="card" style="text-align:center">
-        <p style="color:var(--text-dim);margin-bottom:1rem">No scheduled posts yet.</p>
-        <a class="btn btn-primary" href="{{ url_for('schedule') }}">Schedule your first post</a>
+    <div class="kpi">
+      <div class="kpi-accent"></div>
+      <div class="kpi-label">Posted · last 7 days</div>
+      <div class="kpi-value num">{{ kpi_posted }}</div>
+      <div class="kpi-meta">Published via Cadence</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-accent"></div>
+      <div class="kpi-label">Connected accounts</div>
+      <div class="kpi-value num">{{ kpi_accounts }}</div>
+      <div class="kpi-meta">
+        {% if accts %}<a href="{{ url_for('accounts') }}" style="color:var(--sky-deep);font-weight:600">Manage &rarr;</a>{% else %}<a href="{{ url_for('connect') }}" style="color:var(--sky-deep);font-weight:600">Connect TikTok &rarr;</a>{% endif %}
       </div>
-      {% else %}
-      <div style="border:1px solid var(--rule);border-radius:16px;overflow:hidden;background:#fff">
-        <table style="width:100%;border-collapse:collapse">
-          <thead style="background:var(--bg-cool);font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim)">
-            <tr>
-              <th style="text-align:left;padding:.85rem 1rem">Status</th>
-              <th style="text-align:left;padding:.85rem 1rem">Scheduled</th>
-              <th style="text-align:left;padding:.85rem 1rem">Account</th>
-              <th style="text-align:left;padding:.85rem 1rem">Caption</th>
-              <th style="text-align:right;padding:.85rem 1rem"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for p in queue %}
-            <tr style="border-top:1px solid var(--rule)">
-              <td style="padding:.85rem 1rem"><span class="pill pill-{{ p.status }}">{{ p.status }}</span></td>
-              <td style="padding:.85rem 1rem;font-size:.9rem;color:var(--text-dim)">{{ p.scheduled_at.strftime('%Y-%m-%d %H:%M UTC') }}</td>
-              <td style="padding:.85rem 1rem;font-size:.9rem">@{{ p.tt_account.handle or p.tt_account.tt_open_id[:8] }}</td>
-              <td style="padding:.85rem 1rem;font-size:.9rem;color:var(--text-dim);max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.caption[:80] }}{% if p.caption|length > 80 %}…{% endif %}</td>
-              <td style="padding:.85rem 1rem;text-align:right">
-                {% if p.status == 'queued' %}
-                <form method="POST" action="{{ url_for('cancel', post_id=p.id) }}" style="display:inline">
-                  <button class="btn btn-danger" style="padding:.4rem .9rem;font-size:.85rem" type="submit">Cancel</button>
-                </form>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% endif %}
-    {% endif %}
+    </div>
   </div>
-</section>
+
+  {# ── No-accounts state ───────────────────────────────── #}
+  {% if not accts %}
+    <div class="empty-state" style="margin-top:1.75rem">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+      <h3 style="margin-bottom:.6rem">Connect your first TikTok</h3>
+      <p class="muted" style="max-width:48ch;margin:0 auto 1.5rem">Connect any TikTok you manage &mdash; artist, label, show, production. Add as many as your rollout needs.</p>
+      <a class="btn btn-primary" href="{{ url_for('connect') }}">Connect TikTok &rarr;</a>
+    </div>
+
+  {# ── Has accounts, no queue state ─────────────────────── #}
+  {% elif not queue %}
+    <div class="empty-state" style="margin-top:1.75rem">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 2v4"/><path d="M16 2v4"/></svg>
+      <h3 style="margin-bottom:.6rem">Queue is empty.</h3>
+      <p class="muted" style="max-width:48ch;margin:0 auto 1.5rem">You have {{ kpi_accounts }} TikTok account{{ '' if kpi_accounts == 1 else 's' }} connected. Ready to schedule the first post.</p>
+      <a class="btn btn-primary" href="{{ url_for('schedule') }}">Schedule your first post &rarr;</a>
+    </div>
+
+  {# ── Queue table ──────────────────────────────────────── #}
+  {% else %}
+    <div class="table-card">
+      <div class="table-head">
+        <h3>Recent posts</h3>
+        <span class="muted">Showing {{ queue|length }} most recent</span>
+      </div>
+      <div style="overflow-x:auto">
+      <table class="queue-table" aria-label="Scheduled posts">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Scheduled</th>
+            <th>Account</th>
+            <th>Caption</th>
+            <th style="text-align:right">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for p in queue %}
+          <tr>
+            <td>
+              <span class="pill pill-{{ p.status }}">{{ p.status }}</span>
+            </td>
+            <td>
+              <div class="qtime num">{{ p.scheduled_at.strftime('%b %d') }}</div>
+              <div class="qtime-sub num">{{ p.scheduled_at.strftime('%H:%M UTC') }}</div>
+            </td>
+            <td>
+              <div class="acct-mini">
+                {% if p.tt_account.avatar_url %}
+                  <img class="acct-avatar" src="{{ p.tt_account.avatar_url }}" loading="lazy" alt="">
+                {% else %}
+                  <div class="acct-avatar" style="display:grid;place-items:center;background:linear-gradient(135deg,var(--sky-bright),var(--sky-deep));color:#fff;font-weight:700;font-size:.75rem">{{ (p.tt_account.handle or p.tt_account.tt_open_id)[0]|upper }}</div>
+                {% endif %}
+                <span class="acct-handle">@{{ p.tt_account.handle or p.tt_account.tt_open_id[:8] }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="qcap truncate">{{ p.caption[:120] if p.caption else 'No caption' }}{% if p.caption and p.caption|length > 120 %}&hellip;{% endif %}</span>
+              {% if p.error %}<div class="qmeta" style="color:#dc2626">{{ p.error[:80] }}{% if p.error|length > 80 %}&hellip;{% endif %}</div>
+              {% elif p.video_size %}<div class="qmeta">{{ (p.video_size / (1024*1024))|round(1) }} MB</div>
+              {% endif %}
+            </td>
+            <td style="text-align:right">
+              {% if p.status == 'queued' %}
+                <form method="POST" action="{{ url_for('cancel', post_id=p.id) }}" style="display:inline" onsubmit="return confirm('Cancel this scheduled post?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-danger btn-sm" type="submit">Cancel</button>
+                </form>
+              {% elif p.status == 'posted' and p.tt_publish_id %}
+                <span class="muted" style="font-size:.78rem">id {{ p.tt_publish_id[:10] }}&hellip;</span>
+              {% else %}
+                <span class="muted" style="font-size:.78rem">&mdash;</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <div style="text-align:right;margin-top:1.5rem">
+      <a class="btn btn-primary" href="{{ url_for('schedule') }}">+ Schedule a post</a>
+    </div>
+  {% endif %}
+
+</div>
 {% endblock %}

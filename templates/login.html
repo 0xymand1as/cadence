@@ -4,11 +4,12 @@
 <section class="section-sm">
   <div class="form-card">
     <div class="eyebrow">Welcome back</div>
-    <h2 style="margin-bottom:1rem">Sign in</h2>
-    <form method="POST">
+    <h2 style="margin:.4rem 0 1.4rem">Sign in</h2>
+    <form method="POST" autocomplete="on">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="form-row">
         <label for="email">Email</label>
-        <input type="email" name="email" id="email" required autocomplete="email" autofocus>
+        <input type="email" name="email" id="email" required autocomplete="email" autofocus inputmode="email">
       </div>
       <div class="form-row">
         <label for="password">Password</label>
@@ -17,7 +18,7 @@
       <button type="submit" class="btn btn-primary" style="width:100%">Sign in</button>
     </form>
     <div style="margin-top:1.5rem;font-size:.9rem;color:var(--text-dim);text-align:center">
-      New here? <a href="{{ url_for('signup') }}" style="color:var(--sky-deep);font-weight:600">Create an account</a>
+      New here? <a href="{{ url_for('signup') }}" style="color:var(--sky-deep);font-weight:600">Create an account &rarr;</a>
     </div>
   </div>
 </section>

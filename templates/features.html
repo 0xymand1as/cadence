@@ -1,48 +1,73 @@
 {% extends "base.html" %}
 {% block title %}Features — Cadence{% endblock %}
+
+{% block head_extra %}
+<style>
+  .feat-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-top:2.5rem}
+  .feat-card{background:#fff;border:1px solid var(--rule);border-radius:18px;padding:1.85rem;transition:transform .22s var(--ease-out-soft),box-shadow .22s var(--ease-out-soft),border-color .22s var(--ease-out-soft)}
+  .feat-card:hover{transform:translateY(-2px);box-shadow:0 16px 38px rgba(14,165,233,.1);border-color:rgba(14,165,233,.18)}
+  .feat-card .gv-tick{margin-right:.45rem}
+  .feat-card h3{margin-bottom:.45rem;font-size:1.1rem}
+  .feat-card p{color:var(--text-dim);font-size:.94rem;line-height:1.6}
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="section">
-  <div class="wrap" style="text-align:center;max-width:50ch;margin-inline:auto;margin-bottom:4rem">
+  <div class="wrap" style="text-align:center;max-width:60ch;margin-inline:auto;margin-bottom:.6rem">
     <div class="eyebrow">Features</div>
-    <h2>What Cadence ships.</h2>
-    <p class="lead" style="margin-top:1rem">Every feature designed around the music release window — not a generic Buffer clone.</p>
+    <h2 style="margin-bottom:.85rem">What Cadence <em style="font-family:'Spectral',serif;font-style:italic;font-weight:500;color:var(--sky-deep)">actually</em> ships.</h2>
+    <p class="lead" style="margin:0 auto">Every feature designed around the music release window. Not a generic Buffer clone.</p>
   </div>
-  <div class="wrap grid grid-3">
-    <div class="card">
-      <h3>Multi-account TikTok OAuth</h3>
-      <p>Connect every TikTok account in your rollout via TikTok's official OAuth + PKCE flow. Tokens encrypted at rest with AES-256.</p>
-    </div>
-    <div class="card">
-      <h3>Native Content Posting API</h3>
-      <p>Direct chunked upload to TikTok via their official Content Posting API. No scraping, no browser automation, no ban risk.</p>
-    </div>
-    <div class="card">
-      <h3>Unified release calendar</h3>
-      <p>See every artist, label, and show account on one calendar. Avoid same-hour collisions during release week.</p>
-    </div>
-    <div class="card">
-      <h3>Per-brand caption templates</h3>
-      <p>Show feeds need different copy than artist feeds. Save voice-locked templates per account so the right tone goes out every time.</p>
-    </div>
-    <div class="card">
-      <h3>Auto-publish at scheduled time</h3>
-      <p>Background worker fires posts within seconds of scheduled time. Refresh-token rotation handled automatically. No phone reminders required.</p>
-    </div>
-    <div class="card">
-      <h3>Cancel before publish</h3>
-      <p>Mistakes happen. Cancel any queued post until it enters the publishing window.</p>
-    </div>
-    <div class="card">
-      <h3>Privacy-first storage</h3>
-      <p>OAuth tokens encrypted with Fernet/AES-256. Per-user isolation. Delete-account flow removes everything within 7 days.</p>
-    </div>
-    <div class="card">
-      <h3>Status tracking</h3>
-      <p>Every post tracked through queued → publishing → posted/failed. See exactly when something went wrong and why.</p>
-    </div>
-    <div class="card">
-      <h3>Built by working production crew</h3>
-      <p>Cadence is built by Bigger Dreams, a working LA production company. Wish You Were Here, our flagship show, was the test customer.</p>
+
+  <div class="wrap">
+    <div class="feat-grid">
+
+      <article class="feat-card">
+        <h3><span class="gv-tick">&#10003;</span>Multi-account TikTok OAuth</h3>
+        <p>Connect every TikTok in your rollout via TikTok's official OAuth flow with PKCE. Tokens encrypted at rest with AES-256.</p>
+      </article>
+
+      <article class="feat-card">
+        <h3><span class="gv-tick">&#10003;</span>Native Content Posting API</h3>
+        <p>Direct chunked upload via TikTok's Content Posting API. No scraping. No browser automation. No ban risk.</p>
+      </article>
+
+      <article class="feat-card">
+        <h3><span class="gv-tick">&#10003;</span>Unified release calendar</h3>
+        <p>Every artist, label, and show account on one calendar. Avoid same-hour collisions during release week.</p>
+      </article>
+
+      <article class="feat-card">
+        <h3><span class="gv-tick">&#10003;</span>Per-brand caption templates</h3>
+        <p>Show feeds need different copy than artist feeds. Save voice-locked templates per account so the right tone goes out every time.</p>
+      </article>
+
+      <article class="feat-card">
+        <h3><span class="gv-tick">&#10003;</span>Auto-publish at scheduled time</h3>
+        <p>Background worker fires posts within seconds of the scheduled time. Refresh-token rotation handled automatically. No phone reminders.</p>
+      </article>
+
+      <article class="feat-card">
+        <h3><span class="gv-tick">&#10003;</span>Cancel before publish</h3>
+        <p>Mistakes happen. Cancel any queued post until it enters the publishing window.</p>
+      </article>
+
+      <article class="feat-card">
+        <h3><span class="gv-tick">&#10003;</span>Privacy-first storage</h3>
+        <p>OAuth tokens encrypted with Fernet / AES-256. Per-user isolation. Delete-account flow removes everything within 7 days.</p>
+      </article>
+
+      <article class="feat-card">
+        <h3><span class="gv-tick">&#10003;</span>Status tracking</h3>
+        <p>Every post tracked through queued &rarr; publishing &rarr; posted or failed. See exactly when something went wrong and why.</p>
+      </article>
+
+      <article class="feat-card">
+        <h3><span class="gv-tick">&#10003;</span>Built by working production crew</h3>
+        <p>Cadence is built by Bigger Dreams, a working LA production company. Wish You Were Here, our flagship show, was the test customer.</p>
+      </article>
+
     </div>
   </div>
 </section>

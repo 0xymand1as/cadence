@@ -1,42 +1,259 @@
 {% extends "base.html" %}
 {% block title %}Schedule a post — Cadence{% endblock %}
-{% block content %}
-<section class="section-sm">
-  <div class="form-card" style="max-width:640px">
-    <div class="eyebrow">New post</div>
-    <h2 style="margin-bottom:1.5rem">Schedule a TikTok</h2>
 
-    {% if not accts %}
-    <p style="color:var(--text-dim);margin-bottom:1rem">No TikTok accounts connected yet.</p>
-    <a class="btn btn-primary" href="{{ url_for('connect') }}">Connect TikTok first</a>
-    {% else %}
-    <form method="POST" enctype="multipart/form-data">
-      <div class="form-row">
-        <label for="tt_account_id">Post to</label>
-        <select name="tt_account_id" id="tt_account_id" required>
-          {% for a in accts %}
-          <option value="{{ a.id }}">@{{ a.handle or a.tt_open_id[:12] }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="form-row">
-        <label for="video">Video file</label>
-        <input type="file" name="video" id="video" accept="video/mp4,video/quicktime" required>
-        <div class="form-hint">MP4 or MOV, ≤500 MB, 9:16 vertical recommended.</div>
-      </div>
-      <div class="form-row">
-        <label for="caption">Caption</label>
-        <textarea name="caption" id="caption" rows="4" placeholder="Hook + hashtags…" maxlength="2200"></textarea>
-        <div class="form-hint">Up to 2200 chars. Add hashtags directly.</div>
-      </div>
-      <div class="form-row">
-        <label for="scheduled_at">Scheduled time (local)</label>
-        <input type="datetime-local" name="scheduled_at" id="scheduled_at" required>
-        <div class="form-hint">Cadence converts to UTC. Up to 10 days ahead.</div>
-      </div>
-      <button type="submit" class="btn btn-primary" style="width:100%">Schedule post</button>
-    </form>
-    {% endif %}
+{% block head_extra %}
+<style>
+  .sched-shell{max-width:760px;margin:0 auto;padding:2rem 1.5rem 4rem}
+  .sched-card{background:#fff;border:1px solid var(--rule);border-radius:18px;padding:2.25rem;box-shadow:0 12px 36px rgba(14,165,233,.06);position:relative;overflow:hidden}
+  .sched-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--sky);border-radius:18px 18px 0 0}
+
+  /* Drop zone */
+  .drop-zone{border:2px dashed rgba(14,165,233,.3);border-radius:14px;padding:2.25rem 1.5rem;text-align:center;transition:all .2s var(--ease-out-soft);background:linear-gradient(180deg,var(--bg-cool) 0%,#fff 100%);cursor:pointer;position:relative}
+  .drop-zone:hover,.drop-zone.is-drag{border-color:var(--sky);background:var(--sky-soft)}
+  .drop-zone svg{color:var(--sky);margin-bottom:.6rem}
+  .drop-zone h4{font-family:'Cabinet Grotesk',sans-serif;font-weight:700;font-size:1.05rem;color:var(--text);margin-bottom:.3rem}
+  .drop-zone p{font-size:.86rem;color:var(--text-dim);line-height:1.55}
+  .drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+  .preview{display:none;margin-top:1rem;border:1px solid var(--rule);border-radius:14px;overflow:hidden;background:#000;position:relative}
+  .preview.shown{display:block}
+  .preview video{width:100%;display:block;max-height:420px;object-fit:contain;background:#000}
+  .preview-meta{display:flex;justify-content:space-between;align-items:center;padding:.7rem 1rem;background:#fff;border-top:1px solid var(--rule);font-size:.85rem}
+  .preview-meta .file-name{font-weight:600;color:var(--text);max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .preview-meta .file-size{color:var(--text-dim);font-variant-numeric:tabular-nums}
+  .preview-clear{background:none;border:none;color:#dc2626;font-weight:600;font-size:.85rem;cursor:pointer;padding:.3rem .5rem;border-radius:6px}
+  .preview-clear:hover{background:#fef2f2}
+  .preview-warning{padding:.6rem 1rem;background:#fef3c7;color:#92400e;font-size:.83rem;border-top:1px solid #fde68a}
+
+  /* Progress bar */
+  .progress{display:none;margin-top:1rem;height:8px;background:var(--bg-cool);border-radius:999px;overflow:hidden;position:relative}
+  .progress.shown{display:block}
+  .progress-bar{height:100%;background:linear-gradient(90deg,var(--sky-bright),var(--sky));width:0%;transition:width .15s linear;box-shadow:var(--glow-sky-tight)}
+  .progress-label{margin-top:.4rem;font-size:.82rem;color:var(--text-dim);text-align:center;font-variant-numeric:tabular-nums}
+
+  .char-counter{font-size:.78rem;color:var(--text-dim);text-align:right;margin-top:.25rem;font-variant-numeric:tabular-nums}
+  .char-counter.warn{color:#dc2626}
+
+  @media (max-width:600px){
+    .sched-shell{padding:1.25rem 1rem 5.5rem}
+    .sched-card{padding:1.5rem 1.25rem;border-radius:14px}
+    .drop-zone{padding:1.6rem 1rem}
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sched-shell">
+
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">Compose</div>
+      <h2>Schedule a TikTok</h2>
+    </div>
+    <a class="btn btn-ghost btn-sm" href="{{ url_for('dashboard') }}">&larr; Back</a>
   </div>
-</section>
+
+  {% if not accts %}
+    <div class="empty-state">
+      <h3 style="margin-bottom:.6rem">No accounts yet.</h3>
+      <p class="muted" style="margin-bottom:1.5rem">Connect a TikTok account before scheduling.</p>
+      <a class="btn btn-primary" href="{{ url_for('connect') }}">Connect TikTok &rarr;</a>
+    </div>
+  {% else %}
+
+  <form id="schedForm" method="POST" enctype="multipart/form-data" class="sched-card" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-row">
+      <label for="tt_account_id">Post to</label>
+      <select name="tt_account_id" id="tt_account_id" required>
+        {% for a in accts %}
+          <option value="{{ a.id }}">@{{ a.handle or a.tt_open_id[:12] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label>Video file</label>
+      <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="Upload video">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <h4>Drop a video or click to choose</h4>
+        <p>MP4 or MOV &middot; up to {{ tt_max_video_mb }} MB &middot; {{ tt_min_secs }}&ndash;{{ tt_max_secs }} seconds &middot; 9:16 vertical recommended</p>
+        <input type="file" name="video" id="videoInput" accept="video/mp4,video/quicktime,.mp4,.mov" required>
+      </div>
+      <div class="preview" id="preview">
+        <video id="previewVid" controls playsinline></video>
+        <div class="preview-meta">
+          <span class="file-name" id="fileName"></span>
+          <span class="file-size" id="fileSize"></span>
+          <button type="button" class="preview-clear" id="clearBtn">Remove</button>
+        </div>
+        <div class="preview-warning" id="previewWarning" style="display:none"></div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label for="caption">Caption</label>
+      <textarea name="caption" id="caption" rows="4" placeholder="Hook + hashtags…" maxlength="{{ tt_max_caption }}"></textarea>
+      <div class="char-counter" id="charCounter">0 / {{ tt_max_caption }}</div>
+    </div>
+
+    <div class="form-row">
+      <label for="scheduled_at">Scheduled time (your local timezone)</label>
+      <input type="datetime-local" name="scheduled_at" id="scheduled_at" required>
+      <div class="form-hint">Cadence converts to UTC. Schedule up to 10 days ahead.</div>
+    </div>
+
+    <button type="submit" id="submitBtn" class="btn btn-primary" style="width:100%">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+      Schedule post
+    </button>
+
+    <div class="progress" id="progress" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="progress-label" id="progressLabel" style="display:none">Uploading 0%</div>
+  </form>
+
+  {% endif %}
+</div>
+
+<script>
+(function(){
+  const MAX_MB    = {{ tt_max_video_mb }};
+  const MAX_BYTES = MAX_MB * 1024 * 1024;
+  const MIN_SECS  = {{ tt_min_secs }};
+  const MAX_SECS  = {{ tt_max_secs }};
+
+  const dz       = document.getElementById('dropZone');
+  const input    = document.getElementById('videoInput');
+  const preview  = document.getElementById('preview');
+  const vid      = document.getElementById('previewVid');
+  const fileName = document.getElementById('fileName');
+  const fileSize = document.getElementById('fileSize');
+  const clearBtn = document.getElementById('clearBtn');
+  const warning  = document.getElementById('previewWarning');
+  const submitBtn= document.getElementById('submitBtn');
+  const cap      = document.getElementById('caption');
+  const counter  = document.getElementById('charCounter');
+  const form     = document.getElementById('schedForm');
+  const sched    = document.getElementById('scheduled_at');
+  const progress = document.getElementById('progress');
+  const progressBar = document.getElementById('progressBar');
+  const progressLabel = document.getElementById('progressLabel');
+
+  if (!dz) return;
+
+  // ── Drag-drop wiring ───────────────────────────────────
+  ['dragenter','dragover'].forEach(evt => dz.addEventListener(evt, e => {
+    e.preventDefault(); dz.classList.add('is-drag');
+  }));
+  ['dragleave','drop'].forEach(evt => dz.addEventListener(evt, e => {
+    e.preventDefault(); dz.classList.remove('is-drag');
+  }));
+  dz.addEventListener('drop', e => {
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) { input.files = e.dataTransfer.files; handleFile(f); }
+  });
+  dz.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+  });
+  input.addEventListener('change', () => {
+    if (input.files && input.files[0]) handleFile(input.files[0]);
+  });
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    vid.removeAttribute('src');
+    vid.load();
+    preview.classList.remove('shown');
+    warning.style.display = 'none';
+  });
+
+  // ── File validation + preview ──────────────────────────
+  function handleFile(f){
+    const okType = /\.(mp4|mov)$/i.test(f.name) || /^video\/(mp4|quicktime)$/.test(f.type);
+    if (!okType){ alertWarn('That doesn\'t look like an MP4 or MOV. Choose a different file.'); input.value=''; return; }
+    if (f.size > MAX_BYTES){ alertWarn('File is ' + (f.size/1024/1024).toFixed(1) + ' MB — TikTok caps uploads at ' + MAX_MB + ' MB.'); input.value=''; return; }
+
+    fileName.textContent = f.name;
+    fileSize.textContent = (f.size/1024/1024).toFixed(1) + ' MB';
+    warning.style.display = 'none';
+
+    const url = URL.createObjectURL(f);
+    vid.src = url;
+    preview.classList.add('shown');
+
+    vid.addEventListener('loadedmetadata', function once(){
+      vid.removeEventListener('loadedmetadata', once);
+      const d = vid.duration;
+      if (d && (d < MIN_SECS || d > MAX_SECS)){
+        warning.style.display = 'block';
+        warning.textContent = 'Heads up: this video is ' + d.toFixed(1) + ' s. TikTok prefers ' + MIN_SECS + '–' + MAX_SECS + ' s for short-form.';
+      }
+    }, { once: true });
+  }
+
+  function alertWarn(msg){
+    warning.style.display = 'block';
+    warning.textContent = msg;
+    preview.classList.add('shown');
+    vid.removeAttribute('src');
+  }
+
+  // ── Caption counter ────────────────────────────────────
+  function updateCounter(){
+    const n = cap.value.length;
+    counter.textContent = n + ' / {{ tt_max_caption }}';
+    counter.classList.toggle('warn', n > {{ tt_max_caption }} - 50);
+  }
+  cap.addEventListener('input', updateCounter);
+  updateCounter();
+
+  // ── Default scheduled_at to +1 hour ────────────────────
+  (function setDefaultTime(){
+    if (sched.value) return;
+    const d = new Date(Date.now() + 60*60*1000);
+    const pad = n => String(n).padStart(2,'0');
+    sched.value = d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());
+  })();
+
+  // ── XHR submit w/ progress ─────────────────────────────
+  form.addEventListener('submit', e => {
+    if (!input.files || !input.files[0]) return; // let server handle empty-file error
+    e.preventDefault();
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9" opacity=".3"/><path d="M12 3a9 9 0 0 1 9 9" style="animation: spin 1s linear infinite; transform-origin: 12px 12px"/></svg>Uploading…';
+    progress.classList.add('shown');
+    progressLabel.style.display = 'block';
+
+    const data = new FormData(form);
+    const xhr  = new XMLHttpRequest();
+    xhr.open('POST', form.action || window.location.pathname);
+    xhr.upload.onprogress = ev => {
+      if (ev.lengthComputable){
+        const pct = Math.round(ev.loaded / ev.total * 100);
+        progressBar.style.width = pct + '%';
+        progressLabel.textContent = 'Uploading ' + pct + '%';
+      }
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 400){
+        progressLabel.textContent = 'Done. Redirecting…';
+        // Server may 302; XHR follows + lands on dashboard HTML in responseText.
+        window.location.href = xhr.responseURL || '{{ url_for("dashboard") }}';
+      } else {
+        progressLabel.textContent = 'Upload failed (' + xhr.status + '). Try again.';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Schedule post';
+      }
+    };
+    xhr.onerror = () => {
+      progressLabel.textContent = 'Network error. Try again.';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Schedule post';
+    };
+    xhr.send(data);
+  });
+})();
+</script>
+<style>@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}</style>
 {% endblock %}

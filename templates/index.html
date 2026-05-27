@@ -1,80 +1,173 @@
 {% extends "base.html" %}
+{% block title %}Cadence — TikTok scheduling, multi-brand, music industry built{% endblock %}
+
+{% block head_extra %}
+<style>
+  /* Hero — cloud halo on the editorial italic word. */
+  .hero{position:relative;padding:7rem 0 5rem;overflow:hidden;isolation:isolate}
+  .hero-halo{position:absolute;inset:0;z-index:-1;pointer-events:none;background:
+      radial-gradient(ellipse 55% 60% at 50% 28%,rgba(56,189,248,.38),transparent 65%),
+      radial-gradient(ellipse 80% 50% at 50% 0%,rgba(125,211,252,.16),transparent 70%)}
+  .hero-inner{max-width:980px;margin:0 auto;padding:0 1.5rem;text-align:center;position:relative}
+  .hero h1{margin-bottom:1.4rem;letter-spacing:-.025em}
+  .hero h1 em.cloud-halo{font-family:'Spectral',serif;font-style:italic;font-weight:500;color:var(--text);position:relative;display:inline-block;padding:0 .12em}
+  .hero h1 em.cloud-halo::before{content:"";position:absolute;inset:-30% -10% -20% -10%;z-index:-1;background:radial-gradient(ellipse 70% 80% at 50% 50%,rgba(56,189,248,.42) 0%,rgba(125,211,252,.24) 35%,rgba(14,165,233,.12) 60%,transparent 80%);filter:blur(6px);border-radius:50%}
+  .hero-cta{display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap;margin-top:2.4rem}
+  .hero-trust{margin-top:2.2rem;font-size:.82rem;color:var(--text-dim);letter-spacing:.04em;display:inline-flex;align-items:center;gap:.55rem;justify-content:center;flex-wrap:wrap}
+  .hero-trust::before,.hero-trust::after{content:"";display:inline-block;width:32px;height:1px;background:var(--rule)}
+
+  /* Feature card grid — light tiles on cool bg. */
+  .features-section{background:var(--bg-cool);padding:5.5rem 0}
+  .features-grid{display:grid;gap:1rem;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:2.5rem}
+  .f-card{background:#fff;border:1px solid var(--rule);border-radius:18px;padding:2rem 1.75rem;transition:transform .22s var(--ease-out-soft),box-shadow .22s var(--ease-out-soft),border-color .22s var(--ease-out-soft);position:relative;overflow:hidden}
+  .f-card:hover{transform:translateY(-3px);box-shadow:0 18px 44px rgba(14,165,233,.12);border-color:rgba(14,165,233,.22)}
+  .f-card svg{color:var(--sky);margin-bottom:1.1rem}
+  .f-card h3{margin-bottom:.5rem;font-size:1.18rem}
+  .f-card p{color:var(--text-dim);font-size:.95rem;line-height:1.6}
+
+  /* Use-case row — split image / text. */
+  .uc-section{padding:6rem 0}
+  .uc-grid{display:grid;gap:3.5rem;grid-template-columns:1fr 1fr;align-items:center}
+  .uc-card{aspect-ratio:4/3;border-radius:24px;background:linear-gradient(135deg,var(--sky-deep),var(--dark));display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Spectral',serif;font-style:italic;font-size:2rem;text-align:center;padding:2rem;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(11,18,32,.25)}
+  .uc-card::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 60% 70% at 50% 35%,rgba(56,189,248,.32),transparent 60%);pointer-events:none}
+  .uc-card span{position:relative;text-shadow:0 4px 24px rgba(0,0,0,.35);max-width:14ch}
+
+  /* Process strip — 3 numbered steps. */
+  .process-section{background:#fff;padding:5.5rem 0;border-top:1px solid var(--rule)}
+  .process-grid{display:grid;gap:1.5rem;grid-template-columns:repeat(3,1fr);margin-top:2.5rem}
+  .proc{position:relative;padding:1.5rem;border-radius:16px;background:var(--bg-cool);border:1px solid var(--rule)}
+  .proc-num{font-family:'Cabinet Grotesk',sans-serif;font-weight:800;font-size:2.4rem;color:var(--sky);line-height:1;margin-bottom:.5rem;font-variant-numeric:tabular-nums}
+  .proc h3{margin-bottom:.35rem;font-size:1.1rem}
+  .proc p{color:var(--text-dim);font-size:.92rem;line-height:1.55}
+
+  /* CTA — full dark cinematic. */
+  .cta-section{background:var(--dark);color:#fff;padding:6rem 0;position:relative;overflow:hidden}
+  .cta-section::before{content:"";position:absolute;inset:0;background:
+      radial-gradient(ellipse 60% 70% at 50% 30%,rgba(56,189,248,.22),transparent 60%),
+      radial-gradient(ellipse 30% 50% at 80% 80%,rgba(14,165,233,.16),transparent 60%);pointer-events:none}
+  .cta-section .wrap{position:relative;text-align:center}
+  .cta-section .eyebrow{color:var(--sky-bright)}
+  .cta-section h2{color:#fff;margin-bottom:1rem;text-shadow:0 2px 24px rgba(0,0,0,.45)}
+  .cta-section p{color:rgba(255,255,255,.78);max-width:52ch;margin:0 auto 2.4rem}
+  .cta-section em{font-family:'Spectral',serif;font-style:italic;font-weight:500;color:var(--sky-bright)}
+
+  @media (max-width:900px){
+    .features-grid{grid-template-columns:1fr 1fr}
+    .uc-grid{grid-template-columns:1fr;gap:2rem}
+    .uc-card{aspect-ratio:16/10}
+    .process-grid{grid-template-columns:1fr}
+  }
+  @media (max-width:600px){
+    .features-grid{grid-template-columns:1fr}
+    .hero{padding:5rem 0 3.5rem}
+    .uc-section,.process-section,.cta-section{padding:4rem 0}
+    .features-section{padding:4rem 0}
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<section style="position:relative;padding:7rem 0 5rem;overflow:hidden">
-  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%, var(--sky-glow), transparent 60%);opacity:.5;pointer-events:none"></div>
-  <div class="wrap" style="position:relative;text-align:center">
+
+<section class="hero">
+  <div class="hero-halo"></div>
+  <div class="hero-inner">
     <div class="eyebrow">A Bigger Dreams product · TikTok Marketing Partner application in review</div>
-    <h1 style="margin-bottom:1.25rem;max-width:18ch;margin-inline:auto">
-      Schedule TikTok across <em style="font-family:'Spectral',serif;font-style:italic;font-weight:500">every brand</em> in your roster.
-    </h1>
-    <p class="lead" style="margin-inline:auto;margin-bottom:2.5rem">
-      Built for music production companies, indie labels, and artist managers coordinating posts across show channels, artist accounts, and label handles during release windows.
+    <h1>TikTok scheduling, <em class="cloud-halo">multi&#8209;brand</em>,<br>music industry built.</h1>
+    <p class="lead" style="margin:0 auto;font-size:1.18rem">
+      Coordinate posts across artist, label, show, and production handles during release week. One calendar. Zero same-hour collisions. Native TikTok publishing.
     </p>
-    <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
-      <a class="btn btn-primary" href="{{ url_for('signup') }}">Get started — free beta</a>
-      <a class="btn btn-ghost" href="{{ url_for('features') }}">See features</a>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="{{ url_for('signup') }}">Start free</a>
+      <a class="btn btn-ghost"   href="{{ url_for('features') }}">See features</a>
+    </div>
+    <div class="hero-trust">
+      Built by Bigger Dreams &middot; the team behind <em style="font-family:'Spectral',serif;font-style:italic;color:var(--sky-deep)">Wish You Were Here</em>
     </div>
   </div>
 </section>
 
-<section class="section" style="background:var(--bg-cool)">
+<section class="features-section">
+  <div class="wrap" style="text-align:center;max-width:780px;margin-inline:auto">
+    <div class="eyebrow">Built for the rollout window</div>
+    <h2 style="margin-bottom:.6rem">The tool generic schedulers don't ship.</h2>
+    <p class="lead" style="margin:0 auto">Three things Buffer, Later, and Hootsuite get wrong for music release weeks.</p>
+  </div>
   <div class="wrap">
-    <div style="text-align:center;margin-bottom:3rem">
-      <div class="eyebrow">Built for the rollout window</div>
-      <h2>The scheduling tool generic apps don't ship.</h2>
-    </div>
-    <div class="grid grid-3">
-      <div class="card">
-        <h3>Multi-brand calendar</h3>
-        <p>Connect every TikTok in your rollout — artist, label, show, production company. One unified calendar. No same-hour collisions.</p>
-      </div>
-      <div class="card">
-        <h3>Release-cycle scheduling</h3>
-        <p>Schedule a 7, 14, or 30-day rollout across every connected account in one operation. Drop week aware.</p>
-      </div>
-      <div class="card">
-        <h3>Native publishing</h3>
-        <p>Direct upload via TikTok's official Content Posting API. Auto-publishes at scheduled time. No phone reminders, no manual steps.</p>
-      </div>
-      <div class="card">
-        <h3>Brand-aware captions</h3>
-        <p>Per-account caption templates so the show feed, artist account, and label handle each speak in their own voice.</p>
-      </div>
-      <div class="card">
+    <div class="features-grid">
+
+      <article class="f-card">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 2v4"/><path d="M16 2v4"/><circle cx="8" cy="14" r="1.3" fill="currentColor"/><circle cx="12" cy="14" r="1.3" fill="currentColor"/><circle cx="16" cy="14" r="1.3" fill="currentColor"/></svg>
+        <h3>Unified release calendar</h3>
+        <p>Every connected handle on one timeline. See same-hour collisions before they happen. Coordinate a 7-day rollout in one pass.</p>
+      </article>
+
+      <article class="f-card">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="12" cy="18" r="3"/><path d="M8 7l3 9"/><path d="M16 7l-3 9"/></svg>
+        <h3>Multi-brand by default</h3>
+        <p>Connect artist, label, show, and production handles to one workspace. Per-brand caption templates so each voice stays its own.</p>
+      </article>
+
+      <article class="f-card">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l4-7 4 5 3-4 7 10"/><path d="M3 21h18"/><circle cx="17" cy="6" r="2"/></svg>
         <h3>Performance pull-back</h3>
-        <p>Views, likes, comments synced from each connected account after posts go live. Inform the next rollout.</p>
+        <p>Views, likes, comments synced from each connected account after publish. Inform the next rollout with data, not guesses.</p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section class="uc-section">
+  <div class="wrap">
+    <div class="uc-grid">
+      <div>
+        <div class="eyebrow">The flagship customer</div>
+        <h2 style="margin-bottom:1.1rem">Wish You Were Here.</h2>
+        <p class="lead" style="margin-bottom:1.4rem">
+          Our live-music session series in Los Angeles. Every episode rolls out across three TikToks &mdash; the show, the featured artist, and our production company &mdash; over a seven-day window. Cadence was built to coordinate that. Now we are opening it up.
+        </p>
+        <a class="btn btn-ghost" href="https://wywh-la.com">Visit WYWH &rarr;</a>
       </div>
-      <div class="card">
-        <h3>Team handoff</h3>
-        <p>Production company stages posts for an artist's account. Artist approves. Cadence publishes at the scheduled time.</p>
+      <div class="uc-card">
+        <span><em>live music.</em><br>on schedule.</span>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section">
-  <div class="wrap" style="display:grid;gap:3rem;grid-template-columns:1fr 1fr;align-items:center">
-    <div>
-      <div class="eyebrow">The flagship customer</div>
-      <h2 style="margin-bottom:1.25rem">Wish You Were Here.</h2>
-      <p class="lead" style="margin-bottom:1.5rem">
-        Our live-music session series in Los Angeles. Every episode rolls out across three TikToks — the show, the featured artist, and our production company — over a 7-day window. Cadence was built to coordinate that. Now we're opening it up.
-      </p>
-      <a class="btn btn-ghost" href="https://wywh-la.com">Visit WYWH →</a>
-    </div>
-    <div style="background:linear-gradient(135deg,var(--sky-bright),var(--sky-deep));aspect-ratio:4/3;border-radius:24px;display:flex;align-items:center;justify-content:center;font-family:'Spectral',serif;font-style:italic;font-size:2.5rem;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.25)">
-      live music. on schedule.
+<section class="process-section">
+  <div class="wrap" style="text-align:center;max-width:680px;margin-inline:auto">
+    <div class="eyebrow">How it works</div>
+    <h2>Three steps. No browser automation. No phone reminders.</h2>
+  </div>
+  <div class="wrap">
+    <div class="process-grid">
+      <div class="proc">
+        <div class="proc-num">01</div>
+        <h3>Connect every account</h3>
+        <p>Official TikTok OAuth flow. PKCE-protected. Tokens encrypted at rest with AES-256.</p>
+      </div>
+      <div class="proc">
+        <div class="proc-num">02</div>
+        <h3>Stage the rollout</h3>
+        <p>Upload videos, write captions, set times. Cross-account collisions are surfaced as you schedule.</p>
+      </div>
+      <div class="proc">
+        <div class="proc-num">03</div>
+        <h3>Auto-publish</h3>
+        <p>Background worker fires posts within seconds of the scheduled time via TikTok's Content Posting API.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="section" style="background:var(--dark);color:#fff">
-  <div class="wrap" style="text-align:center">
-    <div class="eyebrow" style="color:var(--sky-bright)">Bigger Dreams · Los Angeles</div>
-    <h2 style="color:#fff;margin-bottom:1rem">Ready to schedule your next rollout?</h2>
-    <p style="color:#94a3b8;max-width:50ch;margin:0 auto 2rem">Free beta for music industry teams. No credit card. Pro tier coming when TikTok approves our API.</p>
+<section class="cta-section">
+  <div class="wrap">
+    <div class="eyebrow">Bigger Dreams &middot; Los Angeles</div>
+    <h2>Ready to coordinate your <em>next</em> rollout?</h2>
+    <p>Free during private beta. No credit card. Pro and Studio tiers ship when TikTok approves the Content Posting API for our app.</p>
     <a class="btn btn-primary" href="{{ url_for('signup') }}">Create your free account</a>
   </div>
 </section>
+
 {% endblock %}

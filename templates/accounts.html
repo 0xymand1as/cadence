@@ -1,48 +1,103 @@
 {% extends "base.html" %}
 {% block title %}Connected accounts — Cadence{% endblock %}
+
+{% block head_extra %}
+<style>
+  .acc-shell{max-width:1200px;margin:0 auto;padding:2rem 1.5rem 4rem}
+  .acc-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-top:1.5rem}
+  .acc-card{background:#fff;border:1px solid var(--rule);border-radius:18px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;transition:transform .22s var(--ease-out-soft),box-shadow .22s var(--ease-out-soft),border-color .22s var(--ease-out-soft);position:relative;overflow:hidden}
+  .acc-card:hover{transform:translateY(-2px);box-shadow:0 16px 38px rgba(14,165,233,.1);border-color:rgba(14,165,233,.18)}
+  .acc-card-top{display:flex;align-items:center;gap:.85rem}
+  .acc-avatar-lg{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--sky-bright),var(--sky-deep));display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.2rem;flex:none;overflow:hidden;border:2px solid #fff;box-shadow:0 4px 14px rgba(14,165,233,.2)}
+  .acc-avatar-lg img{width:100%;height:100%;object-fit:cover}
+  .acc-handle{font-family:'Cabinet Grotesk',sans-serif;font-weight:700;font-size:1.05rem;color:var(--text);line-height:1.2;margin-bottom:.15rem;word-break:break-all}
+  .acc-id{font-size:.78rem;color:var(--text-dim);font-variant-numeric:tabular-nums}
+  .acc-meta{font-size:.83rem;color:var(--text-dim);line-height:1.55}
+  .acc-meta strong{color:var(--text);font-weight:600}
+  .acc-actions{display:flex;justify-content:space-between;gap:.5rem;align-items:center;margin-top:auto;padding-top:.75rem;border-top:1px solid var(--rule)}
+  .acc-connect-card{background:linear-gradient(180deg,var(--bg-cool),#fff);border:2px dashed rgba(14,165,233,.32);border-radius:18px;padding:1.5rem;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:200px;color:var(--sky-deep);font-weight:600;font-size:.95rem;transition:all .2s var(--ease-out-soft)}
+  .acc-connect-card:hover{border-color:var(--sky);background:var(--sky-soft)}
+  .acc-connect-card svg{margin-bottom:.6rem}
+
+  .danger-zone{margin-top:3.5rem;padding:1.85rem;background:#fff;border:1px solid #fecaca;border-radius:18px;max-width:680px}
+  .danger-zone h3{color:#991b1b;font-family:'Cabinet Grotesk',sans-serif;font-weight:700;margin-bottom:.4rem}
+  .danger-zone p{font-size:.9rem;color:var(--text-dim);margin-bottom:1.1rem;line-height:1.6}
+  .danger-zone a{color:var(--sky-deep);font-weight:600}
+
+  @media (max-width:600px){
+    .acc-shell{padding:1.25rem 1rem 5.5rem}
+    .acc-card{padding:1.25rem}
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="section-sm">
-  <div class="wrap" style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:2rem;gap:1rem;flex-wrap:wrap">
+<div class="acc-shell">
+
+  <div class="page-head">
     <div>
-      <div class="eyebrow">Connected accounts</div>
+      <div class="eyebrow">Connections</div>
       <h2>TikTok accounts</h2>
+      <div class="muted" style="font-size:.92rem;margin-top:.35rem">
+        {% if accts %}{{ accts|length }} connected{% else %}None connected yet{% endif %}
+      </div>
     </div>
-    <a class="btn btn-primary" href="{{ url_for('connect') }}">+ Connect another</a>
+    <a class="btn btn-primary" href="{{ url_for('connect') }}">+ Connect TikTok</a>
   </div>
 
-  <div class="wrap">
-    {% if not accts %}
-    <div class="card" style="text-align:center;padding:3rem">
-      <p style="color:var(--text-dim);margin-bottom:1.5rem">No accounts connected yet.</p>
-      <a class="btn btn-primary" href="{{ url_for('connect') }}">Connect TikTok</a>
+  {% if not accts %}
+    <div class="empty-state">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <h3 style="margin-bottom:.6rem">No accounts connected yet.</h3>
+      <p class="muted" style="max-width:48ch;margin:0 auto 1.5rem">Connect any TikTok you manage — artist, label, show, production company. Add as many as your rollout needs.</p>
+      <a class="btn btn-primary" href="{{ url_for('connect') }}">Connect TikTok &rarr;</a>
     </div>
-    {% else %}
-    <div class="grid grid-3">
+  {% else %}
+    <div class="acc-grid">
       {% for a in accts %}
-      <div class="card">
-        <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem">
-          {% if a.avatar_url %}<img src="{{ a.avatar_url }}" style="width:48px;height:48px;border-radius:999px">{% endif %}
-          <div>
-            <div style="font-weight:700">@{{ a.handle or "(no handle)" }}</div>
-            <div style="font-size:.8rem;color:var(--text-dim)">open_id: {{ a.tt_open_id[:16] }}…</div>
+        <div class="acc-card">
+          <div class="acc-card-top">
+            <div class="acc-avatar-lg">
+              {% if a.avatar_url %}
+                <img src="{{ a.avatar_url }}" loading="lazy" alt="">
+              {% else %}
+                {{ (a.handle or a.tt_open_id)[0]|upper }}
+              {% endif %}
+            </div>
+            <div style="min-width:0;flex:1">
+              <div class="acc-handle">@{{ a.handle or '(no handle)' }}</div>
+              <div class="acc-id">id&nbsp;{{ a.tt_open_id[:16] }}&hellip;</div>
+            </div>
+          </div>
+          <div class="acc-meta">
+            Connected <strong class="num">{{ a.created_at.strftime('%b %d, %Y') }}</strong><br>
+            Token refreshes automatically.
+          </div>
+          <div class="acc-actions">
+            <a href="{{ url_for('schedule') }}" class="btn btn-ghost btn-sm">Schedule</a>
+            <form method="POST" action="{{ url_for('disconnect', acct_id=a.id) }}" onsubmit="return confirm('Disconnect @{{ a.handle or a.tt_open_id[:8] }}? Any queued posts to this account will be cancelled.');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-danger btn-sm">Disconnect</button>
+            </form>
           </div>
         </div>
-        <div style="font-size:.85rem;color:var(--text-dim)">
-          Connected {{ a.created_at.strftime('%Y-%m-%d') }}<br>
-          Token refreshes automatically.
-        </div>
-      </div>
       {% endfor %}
-    </div>
-    {% endif %}
 
-    <div style="margin-top:3rem;padding:2rem;background:var(--bg-cool);border-radius:16px;max-width:640px">
-      <h3 style="margin-bottom:.5rem;font-size:1rem">Delete your Cadence account</h3>
-      <p style="font-size:.9rem;color:var(--text-dim);margin-bottom:1rem">Permanently removes all data, tokens, and scheduled posts. To revoke Cadence's access to TikTok independently, manage it at <a href="https://www.tiktok.com/setting/security" style="color:var(--sky-deep)">tiktok.com/setting/security</a>.</p>
-      <form method="POST" action="{{ url_for('delete_account') }}" onsubmit="return confirm('Permanently delete your Cadence account?');">
-        <button type="submit" class="btn btn-danger">Delete account</button>
-      </form>
+      <a href="{{ url_for('connect') }}" class="acc-connect-card">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10"/><path d="M7 12h10"/></svg>
+        <div>Connect another</div>
+      </a>
     </div>
+  {% endif %}
+
+  <div class="danger-zone">
+    <h3>Delete your Cadence account</h3>
+    <p>Permanently removes all data, tokens, scheduled posts, and content. To revoke Cadence's access on TikTok independently, manage it at <a href="https://www.tiktok.com/setting/security">tiktok.com/setting/security</a>.</p>
+    <form method="POST" action="{{ url_for('delete_account') }}" onsubmit="return confirm('Permanently delete your Cadence account? This cannot be undone.');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-danger">Delete account</button>
+    </form>
   </div>
-</section>
+
+</div>
 {% endblock %}

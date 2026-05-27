@@ -1,49 +1,79 @@
 {% extends "base.html" %}
 {% block title %}Pricing — Cadence{% endblock %}
+
+{% block head_extra %}
+<style>
+  .price-grid{display:grid;gap:1.25rem;grid-template-columns:repeat(3,1fr);margin-top:2.75rem}
+  .price-card{background:#fff;border:1px solid var(--rule);border-radius:20px;padding:2rem;display:flex;flex-direction:column;position:relative;transition:transform .22s var(--ease-out-soft),box-shadow .22s var(--ease-out-soft),border-color .22s var(--ease-out-soft)}
+  .price-card:hover{transform:translateY(-2px);box-shadow:0 18px 44px rgba(14,165,233,.1)}
+  .price-card.featured{border-color:var(--sky);box-shadow:0 0 0 4px var(--sky-soft),0 18px 44px rgba(14,165,233,.18);transform:translateY(-4px)}
+  .price-card.featured:hover{transform:translateY(-6px)}
+  .price-tag{position:absolute;top:-12px;right:1.5rem;background:var(--sky);color:#fff;padding:.25rem .75rem;border-radius:999px;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;box-shadow:var(--glow-sky-tight)}
+  .price-amount{font-family:'Cabinet Grotesk',sans-serif;font-weight:800;font-size:2.85rem;letter-spacing:-.025em;line-height:1;margin:.4rem 0 .15rem;font-variant-numeric:tabular-nums;color:var(--text)}
+  .price-amount .per{font-size:1rem;font-weight:500;color:var(--text-dim)}
+  .price-sub{font-size:.85rem;color:var(--text-dim);margin-bottom:1.5rem}
+  .price-list{list-style:none;padding:0;margin:0 0 1.75rem;display:flex;flex-direction:column;gap:.55rem;font-size:.92rem;color:var(--text);line-height:1.55}
+  .price-list li{display:flex;align-items:flex-start;gap:.55rem}
+
+  @media (max-width:900px){.price-grid{grid-template-columns:1fr;gap:1rem}.price-card.featured{transform:none}}
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="section">
-  <div class="wrap" style="text-align:center;margin-bottom:3rem">
+  <div class="wrap" style="text-align:center;max-width:64ch;margin-inline:auto">
     <div class="eyebrow">Pricing</div>
     <h2>Free during private beta. Paid tiers ship when TikTok approves the API.</h2>
-    <p class="lead" style="margin:1rem auto 0">Music industry pricing. Pay per connected account, not per seat.</p>
+    <p class="lead" style="margin:1rem auto 0">Music-industry pricing &mdash; pay per connected account, not per seat.</p>
   </div>
-  <div class="wrap grid grid-3">
-    <div class="card">
-      <h3>Free Beta</h3>
-      <div style="font-size:2.5rem;font-weight:800;font-family:'Cabinet Grotesk',sans-serif;margin:.5rem 0">$0</div>
-      <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:1.5rem">Until API approval</p>
-      <ul style="list-style:none;font-size:.95rem;color:var(--text-dim);line-height:2;padding:0">
-        <li>✓ Unlimited connected accounts</li>
-        <li>✓ Unlimited scheduled posts</li>
-        <li>✓ Multi-brand calendar</li>
-        <li>✓ Email support</li>
-      </ul>
-      <a class="btn btn-primary" href="{{ url_for('signup') }}" style="width:100%;margin-top:1.5rem">Start free</a>
+
+  <div class="wrap">
+    <div class="price-grid">
+
+      <div class="price-card">
+        <h3>Free Beta</h3>
+        <div class="price-amount num">$0</div>
+        <div class="price-sub">Until API approval</div>
+        <ul class="price-list">
+          <li><span class="gv-tick">&#10003;</span>Unlimited connected accounts</li>
+          <li><span class="gv-tick">&#10003;</span>Unlimited scheduled posts</li>
+          <li><span class="gv-tick">&#10003;</span>Multi-brand calendar</li>
+          <li><span class="gv-tick">&#10003;</span>Email support</li>
+        </ul>
+        <a class="btn btn-primary" href="{{ url_for('signup') }}" style="width:100%;margin-top:auto">Start free</a>
+      </div>
+
+      <div class="price-card featured">
+        <span class="price-tag">Coming soon</span>
+        <h3>Pro</h3>
+        <div class="price-amount num">$29<span class="per">/mo</span></div>
+        <div class="price-sub">Up to 5 connected accounts</div>
+        <ul class="price-list">
+          <li><span class="gv-tick">&#10003;</span>Performance analytics</li>
+          <li><span class="gv-tick">&#10003;</span>Caption A/B testing</li>
+          <li><span class="gv-tick">&#10003;</span>Release-cycle templates</li>
+          <li><span class="gv-tick">&#10003;</span>Priority support</li>
+        </ul>
+        <button class="btn btn-ghost" style="width:100%;margin-top:auto" disabled>Available at launch</button>
+      </div>
+
+      <div class="price-card">
+        <h3>Studio</h3>
+        <div class="price-amount num">$99<span class="per">/mo</span></div>
+        <div class="price-sub">Up to 20 connected accounts</div>
+        <ul class="price-list">
+          <li><span class="gv-tick">&#10003;</span>Everything in Pro</li>
+          <li><span class="gv-tick">&#10003;</span>Team handoff workflow</li>
+          <li><span class="gv-tick">&#10003;</span>Artist approval flow</li>
+          <li><span class="gv-tick">&#10003;</span>Phone support</li>
+        </ul>
+        <button class="btn btn-ghost" style="width:100%;margin-top:auto" disabled>Available at launch</button>
+      </div>
+
     </div>
-    <div class="card" style="border-color:var(--sky);position:relative">
-      <div style="position:absolute;top:-12px;right:1.5rem;background:var(--sky);color:#fff;padding:.2rem .7rem;border-radius:999px;font-size:.7rem;font-weight:700;letter-spacing:.05em">COMING SOON</div>
-      <h3>Pro</h3>
-      <div style="font-size:2.5rem;font-weight:800;font-family:'Cabinet Grotesk',sans-serif;margin:.5rem 0">$29<span style="font-size:1rem;font-weight:500;color:var(--text-dim)">/mo</span></div>
-      <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:1.5rem">Up to 5 connected accounts</p>
-      <ul style="list-style:none;font-size:.95rem;color:var(--text-dim);line-height:2;padding:0">
-        <li>✓ Performance analytics</li>
-        <li>✓ Caption A/B testing</li>
-        <li>✓ Release-cycle templates</li>
-        <li>✓ Priority support</li>
-      </ul>
-      <button class="btn btn-ghost" style="width:100%;margin-top:1.5rem" disabled>Available at launch</button>
-    </div>
-    <div class="card">
-      <h3>Studio</h3>
-      <div style="font-size:2.5rem;font-weight:800;font-family:'Cabinet Grotesk',sans-serif;margin:.5rem 0">$99<span style="font-size:1rem;font-weight:500;color:var(--text-dim)">/mo</span></div>
-      <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:1.5rem">Up to 20 connected accounts</p>
-      <ul style="list-style:none;font-size:.95rem;color:var(--text-dim);line-height:2;padding:0">
-        <li>✓ Everything in Pro</li>
-        <li>✓ Team handoff workflow</li>
-        <li>✓ Artist approval flow</li>
-        <li>✓ Phone support</li>
-      </ul>
-      <button class="btn btn-ghost" style="width:100%;margin-top:1.5rem" disabled>Available at launch</button>
+
+    <div style="text-align:center;margin-top:3rem;font-size:.92rem;color:var(--text-dim);max-width:54ch;margin-inline:auto">
+      Questions about scale or custom plans? <a href="mailto:jakedouglas@biggerdreamsco.com" style="color:var(--sky-deep);font-weight:600">jakedouglas@biggerdreamsco.com</a>
     </div>
   </div>
 </section>

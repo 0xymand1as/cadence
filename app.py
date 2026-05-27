@@ -12,25 +12,25 @@ Routes (auth-gated marked w/ †):
     GET   /terms             terms of service (TT review URL)
 
     GET   /signup            signup form
-    POST  /signup            create account
+    POST  /signup            create account (rate-limited)
     GET   /login             login form
-    POST  /login             authenticate
+    POST  /login             authenticate (rate-limited)
     POST  /logout            sign out
 
-    GET   /dashboard         †  queue + accounts overview
-    GET   /accounts          †  list connected TikTok accounts
+    GET   /dashboard         †  KPIs + queue
+    GET   /accounts          †  list + disconnect connected TikTok accounts
     GET   /connect           †  begin TikTok OAuth
     GET   /callback             OAuth redirect handler
     GET   /schedule          †  schedule-post form
     POST  /schedule          †  enqueue a post
     POST  /cancel/<id>       †  cancel queued post
+    POST  /disconnect/<id>   †  remove a connected TT account
     POST  /delete-account    †  permanently delete account + data
     GET   /health               render healthcheck
 """
 from __future__ import annotations
 
 import os
-import io
 import secrets
 import hashlib
 import base64
@@ -41,12 +41,16 @@ from urllib.parse import urlencode
 import bcrypt
 import requests
 from flask import (Flask, redirect, request, session, url_for,
-                   render_template, flash, abort)
+                   render_template, flash)
 from flask_login import (LoginManager, login_user, logout_user,
                           login_required, current_user)
+from flask_wtf.csrf import CSRFProtect, generate_csrf
+from flask_compress import Compress
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
-from models  import db, User, TTAccount, ScheduledPost
-from crypto  import encrypt, decrypt
+from models   import db, User, TTAccount, ScheduledPost
+from crypto   import encrypt, decrypt
 from scheduler import start_scheduler
 
 
@@ -63,9 +67,36 @@ DEFAULT_DB = "sqlite:////var/data/cadence.db" if os.path.isdir("/var/data") \
              else "sqlite:///cadence.db"
 app.config["SQLALCHEMY_DATABASE_URI"]        = os.environ.get("DATABASE_URL", DEFAULT_DB)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["MAX_CONTENT_LENGTH"]             = 600 * 1024 * 1024  # 600 MB upload cap
+app.config["MAX_CONTENT_LENGTH"]             = 320 * 1024 * 1024  # 320 MB — slightly over TT's 287 MB cap for headroom
+app.config["WTF_CSRF_TIME_LIMIT"]            = None              # session-scoped CSRF
+app.config["SESSION_COOKIE_HTTPONLY"]        = True
+app.config["SESSION_COOKIE_SAMESITE"]        = "Lax"
+# Secure cookie when behind HTTPS (Render proxies it).
+app.config["SESSION_COOKIE_SECURE"]          = bool(os.environ.get("RENDER"))
+app.config["PERMANENT_SESSION_LIFETIME"]     = timedelta(days=30)
 
 db.init_app(app)
+
+# CSRF — applies to every POST except those decorated w/ @csrf.exempt
+csrf = CSRFProtect(app)
+
+# gzip / br responses
+Compress(app)
+
+# Per-IP rate limit on auth endpoints
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    storage_uri="memory://",
+    default_limits=[],
+)
+
+
+@app.context_processor
+def _inject_csrf():
+    """Expose csrf_token() to every template."""
+    return {"csrf_token": generate_csrf}
+
 
 login_mgr = LoginManager(app)
 login_mgr.login_view = "login"
@@ -87,10 +118,17 @@ TIKTOK_TOKEN_URL = "https://open.tiktokapis.com/v2/oauth/token/"
 TIKTOK_USERINFO  = "https://open.tiktokapis.com/v2/user/info/"
 SCOPE            = "user.info.basic,video.upload,video.publish"
 
+# TikTok content-posting hard limits — surface to UI + enforce server-side
+TT_MAX_VIDEO_BYTES = 287 * 1024 * 1024   # 287 MB per TT docs
+TT_MAX_CAPTION     = 2200
+TT_MIN_SECS        = 3
+TT_MAX_SECS        = 60
+
 
 # ── Public marketing pages ────────────────────────────────────────────
 
 @app.route("/health")
+@csrf.exempt
 def health():
     return {"status": "ok", "ts": datetime.utcnow().isoformat()}, 200
 
@@ -128,6 +166,7 @@ def terms():
 # ── Signup / Login / Logout ───────────────────────────────────────────
 
 @app.route("/signup", methods=["GET", "POST"])
+@limiter.limit("10 per hour", methods=["POST"])
 def signup():
     if current_user.is_authenticated:
         return redirect(url_for("dashboard"))
@@ -136,24 +175,27 @@ def signup():
         email = (request.form.get("email") or "").strip().lower()
         pw    = request.form.get("password") or ""
         if not email or "@" not in email or len(pw) < 8:
-            flash("Email and 8+ char password required.")
+            flash("Email and 8+ character password required.", "error")
             return render_template("signup.html"), 400
         if User.query.filter_by(email=email).first():
-            flash("Account already exists. Sign in instead.")
+            flash("Account already exists — sign in instead.", "error")
             return render_template("signup.html"), 409
         u = User(
             email         = email,
             password_hash = bcrypt.hashpw(pw.encode(), bcrypt.gensalt(12)).decode(),
+            last_login_at = datetime.now(timezone.utc),
         )
         db.session.add(u)
         db.session.commit()
         login_user(u, remember=True)
+        flash("Welcome to Cadence. Connect your first TikTok to get started.", "success")
         return redirect(url_for("dashboard"))
 
     return render_template("signup.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
+@limiter.limit("20 per hour", methods=["POST"])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("dashboard"))
@@ -163,15 +205,17 @@ def login():
         pw    = request.form.get("password") or ""
         u = User.query.filter_by(email=email).first()
         if not u or not bcrypt.checkpw(pw.encode(), u.password_hash.encode()):
-            flash("Invalid credentials.")
+            flash("Invalid credentials.", "error")
             return render_template("login.html"), 401
+        u.last_login_at = datetime.now(timezone.utc)
+        db.session.commit()
         login_user(u, remember=True)
         return redirect(url_for("dashboard"))
 
     return render_template("login.html")
 
 
-@app.route("/logout", methods=["POST", "GET"])
+@app.route("/logout", methods=["POST"])
 def logout():
     logout_user()
     return redirect(url_for("index"))
@@ -183,6 +227,10 @@ def logout():
 @login_required
 def dashboard():
     accts = current_user.tt_accounts
+    now   = datetime.now(timezone.utc)
+    week_start = now - timedelta(days=7)
+    week_end   = now + timedelta(days=7)
+
     queue = (
         ScheduledPost.query
         .filter_by(user_id=current_user.id)
@@ -190,7 +238,31 @@ def dashboard():
         .limit(50)
         .all()
     )
-    return render_template("dashboard.html", accts=accts, queue=queue)
+
+    kpi_scheduled = (
+        ScheduledPost.query
+        .filter_by(user_id=current_user.id, status="queued")
+        .filter(ScheduledPost.scheduled_at >= now)
+        .filter(ScheduledPost.scheduled_at <= week_end)
+        .count()
+    )
+    kpi_posted = (
+        ScheduledPost.query
+        .filter_by(user_id=current_user.id, status="posted")
+        .filter(ScheduledPost.posted_at != None)  # noqa: E711
+        .filter(ScheduledPost.posted_at >= week_start)
+        .count()
+    )
+    kpi_accounts = len(accts)
+
+    return render_template(
+        "dashboard.html",
+        accts        = accts,
+        queue        = queue,
+        kpi_scheduled = kpi_scheduled,
+        kpi_posted    = kpi_posted,
+        kpi_accounts  = kpi_accounts,
+    )
 
 
 @app.route("/accounts")
@@ -235,20 +307,25 @@ def callback():
     code  = request.args.get("code")
     state = request.args.get("state")
     error = request.args.get("error")
+    error_desc = request.args.get("error_description", "")
 
     if error:
-        return render_template("error.html",
-                               message=f"TikTok denied access: {error}"), 400
+        # User denied / cancelled. Friendly back-to-accounts, no scary error page.
+        flash(f"TikTok connection cancelled ({error}). You can try again any time.", "error")
+        return redirect(url_for("accounts"))
+    if not code:
+        flash("TikTok didn't return an authorization code. Please try again.", "error")
+        return redirect(url_for("accounts"))
     if state != session.get("state"):
-        return render_template("error.html",
-                               message="State mismatch — please try again."), 400
+        flash("Security check failed (state mismatch). Please try connecting again.", "error")
+        return redirect(url_for("accounts"))
 
     resp = requests.post(
         TIKTOK_TOKEN_URL,
         headers={"Content-Type": "application/x-www-form-urlencoded"},
         data={
             "client_key":     CLIENT_KEY,
-            "client_secret": CLIENT_SECRET,
+            "client_secret":  CLIENT_SECRET,
             "code":           code,
             "grant_type":     "authorization_code",
             "redirect_uri":   REDIRECT_URI,
@@ -257,8 +334,9 @@ def callback():
         timeout=15,
     )
     if not resp.ok:
+        logging.error(f"TT token exchange failed: {resp.status_code} {resp.text[:300]}")
         return render_template("error.html",
-                               message=f"Token exchange failed: {resp.text[:200]}"), 400
+                               message="TikTok wouldn't issue a token. Please try connecting again."), 400
 
     tok = resp.json()
     open_id       = tok.get("open_id", "")
@@ -267,8 +345,9 @@ def callback():
     expires_in    = int(tok.get("expires_in", 3600))
 
     if not (open_id and access_token):
+        logging.error(f"TT token response missing fields: {tok}")
         return render_template("error.html",
-                               message=f"Bad token response: {tok}"), 400
+                               message="TikTok returned an incomplete token. Please try again."), 400
 
     handle, avatar = _fetch_handle(access_token)
 
@@ -291,7 +370,7 @@ def callback():
             expires_at      = datetime.now(timezone.utc) + timedelta(seconds=expires_in),
         ))
     db.session.commit()
-    flash(f"Connected @{handle or open_id}.")
+    flash(f"Connected @{handle or open_id}.", "success")
     return redirect(url_for("dashboard"))
 
 
@@ -311,6 +390,26 @@ def _fetch_handle(token: str):
     return "", ""
 
 
+@app.route("/disconnect/<int:acct_id>", methods=["POST"])
+@login_required
+def disconnect(acct_id: int):
+    acct = TTAccount.query.filter_by(id=acct_id, user_id=current_user.id).first_or_404()
+    # Don't delete queued posts pointed at this acct — cancel them first.
+    cancelled = (
+        ScheduledPost.query
+        .filter_by(tt_account_id=acct.id, user_id=current_user.id, status="queued")
+        .update({"status": "cancelled", "error": "TikTok account disconnected"})
+    )
+    handle = acct.handle or acct.tt_open_id[:8]
+    db.session.delete(acct)
+    db.session.commit()
+    if cancelled:
+        flash(f"Disconnected @{handle}. Cancelled {cancelled} queued post(s).", "info")
+    else:
+        flash(f"Disconnected @{handle}.", "info")
+    return redirect(url_for("accounts"))
+
+
 # ── Schedule a post ───────────────────────────────────────────────────
 
 @app.route("/schedule", methods=["GET", "POST"])
@@ -318,46 +417,70 @@ def _fetch_handle(token: str):
 def schedule():
     if request.method == "POST":
         tt_id      = int(request.form.get("tt_account_id") or 0)
-        caption    = (request.form.get("caption") or "").strip()
+        caption    = (request.form.get("caption") or "").strip()[:TT_MAX_CAPTION]
         sched_str  = (request.form.get("scheduled_at") or "").strip()
         file       = request.files.get("video")
 
         acct = TTAccount.query.filter_by(id=tt_id, user_id=current_user.id).first()
         if not acct:
-            flash("Pick a connected TikTok account.")
+            flash("Pick a connected TikTok account.", "error")
             return redirect(url_for("schedule"))
         if not (file and file.filename):
-            flash("Upload a video file (mp4, ≤500 MB).")
+            flash("Upload a video file.", "error")
+            return redirect(url_for("schedule"))
+
+        # Filename + mimetype sanity. TT accepts MP4 (h264) + MOV.
+        fn = (file.filename or "").lower()
+        if not (fn.endswith(".mp4") or fn.endswith(".mov")):
+            flash("Video must be .mp4 or .mov.", "error")
             return redirect(url_for("schedule"))
 
         try:
             sched_dt = datetime.fromisoformat(sched_str).astimezone(timezone.utc)
         except Exception:
-            flash("Bad schedule time.")
+            flash("Pick a valid date and time.", "error")
             return redirect(url_for("schedule"))
         if sched_dt < datetime.now(timezone.utc) - timedelta(minutes=1):
-            flash("Schedule time is in the past.")
+            flash("Scheduled time is in the past.", "error")
+            return redirect(url_for("schedule"))
+        if sched_dt > datetime.now(timezone.utc) + timedelta(days=10):
+            flash("Schedule up to 10 days ahead.", "error")
             return redirect(url_for("schedule"))
 
         blob = file.read()
         if len(blob) == 0:
-            flash("Empty file.")
+            flash("Uploaded file is empty.", "error")
+            return redirect(url_for("schedule"))
+        if len(blob) > TT_MAX_VIDEO_BYTES:
+            flash(f"Video is {len(blob)//(1024*1024)} MB — TikTok caps uploads at 287 MB.", "error")
             return redirect(url_for("schedule"))
 
         db.session.add(ScheduledPost(
             user_id        = current_user.id,
             tt_account_id  = acct.id,
-            video_filename = file.filename[:255],
+            video_filename = (file.filename or "video.mp4")[:255],
             video_blob     = blob,
+            video_size     = len(blob),
             caption        = caption,
             scheduled_at   = sched_dt,
             status         = "queued",
         ))
         db.session.commit()
-        flash(f"Scheduled for {sched_dt.strftime('%Y-%m-%d %H:%M UTC')}.")
+        flash(
+            f"Scheduled for {sched_dt.strftime('%Y-%m-%d %H:%M UTC')} "
+            f"to @{acct.handle or acct.tt_open_id[:8]}.",
+            "success",
+        )
         return redirect(url_for("dashboard"))
 
-    return render_template("schedule.html", accts=current_user.tt_accounts)
+    return render_template(
+        "schedule.html",
+        accts             = current_user.tt_accounts,
+        tt_max_video_mb   = TT_MAX_VIDEO_BYTES // (1024 * 1024),
+        tt_max_caption    = TT_MAX_CAPTION,
+        tt_min_secs       = TT_MIN_SECS,
+        tt_max_secs       = TT_MAX_SECS,
+    )
 
 
 @app.route("/cancel/<int:post_id>", methods=["POST"])
@@ -365,11 +488,13 @@ def schedule():
 def cancel(post_id: int):
     p = ScheduledPost.query.filter_by(id=post_id, user_id=current_user.id).first_or_404()
     if p.status != "queued":
-        flash(f"Cannot cancel — already {p.status}.")
+        flash(f"Can't cancel — post is already {p.status}.", "error")
     else:
-        db.session.delete(p)
+        # Free the blob immediately + mark cancelled (audit trail).
+        p.status     = "cancelled"
+        p.video_blob = b""
         db.session.commit()
-        flash("Cancelled.")
+        flash("Post cancelled.", "info")
     return redirect(url_for("dashboard"))
 
 
@@ -383,6 +508,21 @@ def delete_account():
     db.session.commit()
     logout_user()
     return render_template("deleted.html")
+
+
+# ── Error handlers ────────────────────────────────────────────────────
+
+@app.errorhandler(413)
+def _too_large(e):
+    cap_mb = app.config["MAX_CONTENT_LENGTH"] // (1024 * 1024)
+    return render_template("error.html",
+                           message=f"That file is bigger than our {cap_mb} MB upload limit."), 413
+
+
+@app.errorhandler(404)
+def _not_found(e):
+    return render_template("error.html",
+                           message="Page not found."), 404
 
 
 # ── Init DB + scheduler on boot ───────────────────────────────────────
