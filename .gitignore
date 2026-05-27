@@ -8,3 +8,4 @@ venv/
 *.log
 .DS_Store
 instance/
+.cadence_fernet_key
