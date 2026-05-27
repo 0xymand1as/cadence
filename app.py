@@ -133,6 +133,15 @@ def health():
     return {"status": "ok", "ts": datetime.utcnow().isoformat()}, 200
 
 
+# TikTok URL-prefix verification — serves any tiktok*.txt verification
+# file dropped into static/ at the root path TT expects.
+@app.route("/tiktok<token>.txt")
+@csrf.exempt
+def tiktok_verify(token):
+    from flask import send_from_directory
+    return send_from_directory("static", f"tiktok{token}.txt", mimetype="text/plain")
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
