@@ -10,3 +10,4 @@ apscheduler>=3.10
 requests>=2.31
 gunicorn>=21.2
 email-validator>=2.0
+psycopg2-binary>=2.9

@@ -61,11 +61,20 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET", secrets.token_hex(32))
 
-# SQLite at /var/data/cadence.db on Render (persistent free-disk),
-# fallback to local file for dev.
+# Prefer Render Postgres add-on via DATABASE_URL (persistent + scales).
+# Fallback chain: persistent disk SQLite (if /var/data mounted), then local SQLite for dev.
+# Render historically emitted `postgres://` but SQLAlchemy >=1.4 requires `postgresql://`.
 DEFAULT_DB = "sqlite:////var/data/cadence.db" if os.path.isdir("/var/data") \
              else "sqlite:///cadence.db"
-app.config["SQLALCHEMY_DATABASE_URI"]        = os.environ.get("DATABASE_URL", DEFAULT_DB)
+_db_url = os.environ.get("DATABASE_URL", DEFAULT_DB)
+if _db_url.startswith("postgres://"):
+    _db_url = "postgresql://" + _db_url[len("postgres://"):]
+app.config["SQLALCHEMY_DATABASE_URI"]        = _db_url
+# Postgres connection pool tuning — Render free tier has ~97 connection limit
+app.config["SQLALCHEMY_ENGINE_OPTIONS"]      = {
+    "pool_pre_ping":  True,          # detect stale conns after Render scales
+    "pool_recycle":   280,           # < Render's 300s idle close
+}
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["MAX_CONTENT_LENGTH"]             = 320 * 1024 * 1024  # 320 MB — slightly over TT's 287 MB cap for headroom
 app.config["WTF_CSRF_TIME_LIMIT"]            = None              # session-scoped CSRF
