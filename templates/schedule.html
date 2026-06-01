@@ -99,10 +99,23 @@
     </div>
 
     <div class="form-row">
+      <label for="privacy_level">Who can see this post</label>
+      <select name="privacy_level" id="privacy_level" required>
+        <option value="" disabled selected>Select an audience…</option>
+        <option value="PUBLIC_TO_EVERYONE">Public — everyone</option>
+        <option value="MUTUAL_FOLLOW_FRIENDS">Friends — mutual followers</option>
+        <option value="SELF_ONLY">Private — only me</option>
+      </select>
+      <div class="form-hint">You choose the audience for every post — there is no default.</div>
+    </div>
+
+    <div class="form-row">
       <label for="scheduled_at">Scheduled time (your local timezone)</label>
       <input type="datetime-local" name="scheduled_at" id="scheduled_at" required>
       <div class="form-hint">Cadence converts to UTC. Schedule up to 10 days ahead.</div>
     </div>
+
+    <p class="form-hint" style="margin-bottom:1rem">By scheduling, you confirm your content follows TikTok's <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" rel="noopener" style="color:var(--sky-deep)">Music Usage Confirmation</a> and Community Guidelines.</p>
 
     <button type="submit" id="submitBtn" class="btn btn-primary" style="width:100%">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>

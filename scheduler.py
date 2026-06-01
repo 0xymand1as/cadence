@@ -47,7 +47,8 @@ def _fire_due_posts(app):
                 acct = post.tt_account
                 access_token = _ensure_fresh_token(acct, app)
                 publish_id = publish_video(
-                    access_token, post.video_blob, post.caption or ""
+                    access_token, post.video_blob, post.caption or "",
+                    privacy_level=post.privacy_level or "SELF_ONLY",
                 )
                 post.status        = "posted"
                 post.tt_publish_id = publish_id

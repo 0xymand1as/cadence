@@ -60,6 +60,7 @@ class ScheduledPost(db.Model):
     video_blob      = db.Column(db.LargeBinary, nullable=False)  # held in DB; OK for review-stage volume
     video_size      = db.Column(db.Integer, default=0)           # bytes — cheap query w/o LENGTH(blob)
     caption         = db.Column(db.Text, default="")
+    privacy_level   = db.Column(db.String(32), nullable=False, default="SELF_ONLY")
     scheduled_at    = db.Column(db.DateTime, nullable=False, index=True)
     status          = db.Column(db.String(32), nullable=False, default="queued", index=True)
     tt_publish_id   = db.Column(db.String(255), default="")

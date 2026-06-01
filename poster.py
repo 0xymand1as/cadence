@@ -27,7 +27,8 @@ def _h(token: str) -> dict:
     }
 
 
-def publish_video(access_token: str, video_bytes: bytes, caption: str) -> str:
+def publish_video(access_token: str, video_bytes: bytes, caption: str,
+                  privacy_level: str = "SELF_ONLY") -> str:
     """
     Synchronously publish a video to the TikTok account associated with
     `access_token`. Returns the TT publish_id once PUBLISH_COMPLETE.
@@ -40,7 +41,7 @@ def publish_video(access_token: str, video_bytes: bytes, caption: str) -> str:
     init_body = {
         "post_info": {
             "title":               caption[:2200],
-            "privacy_level":       "PUBLIC_TO_EVERYONE",
+            "privacy_level":       privacy_level,
             "disable_duet":        False,
             "disable_comment":     False,
             "disable_stitch":      False,

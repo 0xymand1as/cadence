@@ -132,6 +132,9 @@ TT_MAX_VIDEO_BYTES = 287 * 1024 * 1024   # 287 MB per TT docs
 TT_MAX_CAPTION     = 2200
 TT_MIN_SECS        = 3
 TT_MAX_SECS        = 60
+# TikTok Content Posting API privacy levels. The user MUST actively choose one
+# (no default) — TikTok app review rejects a missing or pre-defaulted selector.
+TT_PRIVACY_OPTIONS = ("PUBLIC_TO_EVERYONE", "MUTUAL_FOLLOW_FRIENDS", "SELF_ONLY")
 
 
 # ── Public marketing pages ────────────────────────────────────────────
@@ -437,11 +440,15 @@ def schedule():
         tt_id      = int(request.form.get("tt_account_id") or 0)
         caption    = (request.form.get("caption") or "").strip()[:TT_MAX_CAPTION]
         sched_str  = (request.form.get("scheduled_at") or "").strip()
+        privacy    = (request.form.get("privacy_level") or "").strip()
         file       = request.files.get("video")
 
         acct = TTAccount.query.filter_by(id=tt_id, user_id=current_user.id).first()
         if not acct:
             flash("Pick a connected TikTok account.", "error")
+            return redirect(url_for("schedule"))
+        if privacy not in TT_PRIVACY_OPTIONS:
+            flash("Choose who can see this post.", "error")
             return redirect(url_for("schedule"))
         if not (file and file.filename):
             flash("Upload a video file.", "error")
@@ -480,6 +487,7 @@ def schedule():
             video_blob     = blob,
             video_size     = len(blob),
             caption        = caption,
+            privacy_level  = privacy,
             scheduled_at   = sched_dt,
             status         = "queued",
         ))
@@ -554,6 +562,27 @@ def _initialize(app):
         except PermissionError:
             pass
         db.create_all()
+        _add_column_if_missing(
+            "scheduled_posts", "privacy_level",
+            "VARCHAR(32) NOT NULL DEFAULT 'SELF_ONLY'",
+        )
+
+
+def _add_column_if_missing(table: str, column: str, ddl_type: str) -> None:
+    """Additive, idempotent migration — create_all() does NOT add columns to
+    existing tables. Works on Postgres + SQLite (ADD COLUMN w/ constant DEFAULT)."""
+    from sqlalchemy import inspect as _inspect, text as _text
+    try:
+        insp = _inspect(db.engine)
+        if table not in insp.get_table_names():
+            return
+        if column in [c["name"] for c in insp.get_columns(table)]:
+            return
+        with db.engine.begin() as conn:
+            conn.execute(_text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl_type}"))
+        app.logger.info("migration: added %s.%s", table, column)
+    except Exception as e:                                   # noqa: BLE001
+        app.logger.warning("migration skip %s.%s: %s", table, column, e)
 
 
 _initialize(app)
