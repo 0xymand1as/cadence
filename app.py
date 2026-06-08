@@ -443,25 +443,29 @@ def disconnect(acct_id: int):
 
 # ── Schedule a post ───────────────────────────────────────────────────
 
+def _creator_info_for(acct) -> dict:
+    """Fetch + normalize one account's TikTok creator_info. Single source for
+    both the GET render and the POST re-validation, so the SELF_ONLY fallback
+    and the reconnect-error shape can't drift. Returns the info dict (with
+    privacy_level_options defaulted to ['SELF_ONLY'] if empty), or
+    {"error": msg} if TikTok was unreachable."""
+    try:
+        token = _ensure_fresh_token(acct, app)
+        info  = query_creator_info(token)
+        # Always offer at least SELF_ONLY so the user is never fully blocked.
+        if not info.get("privacy_level_options"):
+            info["privacy_level_options"] = ["SELF_ONLY"]
+        return info
+    except Exception as e:                                       # noqa: BLE001
+        logging.warning("creator_info failed for acct %s: %s", acct.id, e)
+        return {"error": "Couldn't reach TikTok for this account. Reconnect it and try again."}
+
+
 def _creator_info_map(accts) -> dict:
-    """Query TikTok creator_info for each connected account. TikTok's Content
-    Posting UX guidelines require the posting UI to source privacy options,
-    interaction-disable flags, nickname, and max duration from this call.
-    Returns {acct_id: {...info...}}; on failure stores {"error": msg} so the
-    template can prompt a reconnect instead of silently hardcoding."""
-    out = {}
-    for a in accts:
-        try:
-            token = _ensure_fresh_token(a, app)
-            info  = query_creator_info(token)
-            # Always offer at least SELF_ONLY so the user is never fully blocked.
-            if not info.get("privacy_level_options"):
-                info["privacy_level_options"] = ["SELF_ONLY"]
-            out[a.id] = info
-        except Exception as e:                                   # noqa: BLE001
-            logging.warning("creator_info failed for acct %s: %s", a.id, e)
-            out[a.id] = {"error": "Couldn't reach TikTok for this account. Reconnect it and try again."}
-    return out
+    """Per-account creator_info for the posting UI. TikTok's Content Posting UX
+    guidelines require the UI to source privacy options, interaction-disable
+    flags, nickname, and max duration from this call (not hardcoded)."""
+    return {a.id: _creator_info_for(a) for a in accts}
 
 
 @app.route("/schedule", methods=["GET", "POST"])
@@ -483,11 +487,8 @@ def schedule():
             return redirect(url_for("schedule"))
 
         # Authoritative server-side capabilities (never trust the client form).
-        try:
-            token = _ensure_fresh_token(acct, app)
-            info  = query_creator_info(token)
-        except Exception as e:                                   # noqa: BLE001
-            logging.warning("creator_info failed at submit for acct %s: %s", acct.id, e)
+        info = _creator_info_for(acct)
+        if info.get("error"):
             flash("Couldn't reach TikTok to confirm posting options. Reconnect the account and try again.", "error")
             return redirect(url_for("schedule"))
 
