@@ -106,7 +106,7 @@
       <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="Upload video">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <h4>Drop a video or click to choose</h4>
-        <p>MP4 or MOV &middot; up to {{ tt_max_video_mb }} MB &middot; {{ tt_min_secs }}&ndash;{{ tt_max_secs }} seconds &middot; 9:16 vertical recommended</p>
+        <p id="dropHint">MP4 or MOV &middot; up to {{ tt_max_video_mb }} MB &middot; {{ tt_min_secs }}&ndash;{{ tt_max_secs }} seconds &middot; 9:16 vertical recommended</p>
         <input type="file" name="video" id="videoInput" accept="video/mp4,video/quicktime,.mp4,.mov" required>
       </div>
       <div class="preview" id="preview">
@@ -169,7 +169,8 @@
       <div class="form-hint">Cadence converts to UTC. Schedule up to 10 days ahead.</div>
     </div>
 
-    <p class="form-hint" id="complianceText" style="margin-bottom:1rem">By scheduling, you agree to TikTok's <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" rel="noopener" style="color:var(--sky-deep)">Music Usage Confirmation</a> and Community Guidelines.</p>
+    <p class="form-hint" id="complianceText" style="margin-bottom:.5rem">By scheduling, you agree to TikTok's <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" rel="noopener" style="color:var(--sky-deep)">Music Usage Confirmation</a> and Community Guidelines.</p>
+    <p class="form-hint" style="margin-bottom:1rem">After publishing, it can take a few minutes for TikTok to process the video and show it on the profile.</p>
 
     <button type="submit" id="submitBtn" class="btn btn-primary" style="width:100%">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
@@ -251,9 +252,10 @@
     vid.addEventListener('loadedmetadata', function once(){
       vid.removeEventListener('loadedmetadata', once);
       const d = vid.duration;
-      if (d && (d < MIN_SECS || d > MAX_SECS)){
+      const cap = window.cadenceMaxSecs || MAX_SECS;   // per-account max from creator_info
+      if (d && (d < MIN_SECS || d > cap)){
         warning.style.display = 'block';
-        warning.textContent = 'Heads up: this video is ' + d.toFixed(1) + ' s. TikTok prefers ' + MIN_SECS + '–' + MAX_SECS + ' s for short-form.';
+        warning.textContent = 'Heads up: this video is ' + d.toFixed(1) + ' s. TikTok allows up to ' + cap + ' s for this account (min ' + MIN_SECS + ' s).';
       }
     }, { once: true });
   }
@@ -375,6 +377,19 @@
     });
   }
 
+  // Max post duration — sourced per-account from creator_info (TikTok UX rule).
+  const dropHint = document.getElementById('dropHint');
+  const DROP_HINT_DEFAULT = dropHint ? dropHint.textContent : '';
+  function applyMaxDuration(info){
+    const sec = info && info.max_video_post_duration_sec;
+    window.cadenceMaxSecs = sec || null;
+    if (dropHint){
+      dropHint.textContent = sec
+        ? 'MP4 or MOV · up to {{ tt_max_video_mb }} MB · up to ' + sec + ' s · 9:16 vertical recommended'
+        : DROP_HINT_DEFAULT;
+    }
+  }
+
   function applyAccount(){
     const info = curInfo();
     if (info.error){
@@ -384,6 +399,7 @@
       errEl.textContent = info.error;
       fillPrivacy([]);
       applyInteraction({});   // clear any stale toggles from a prior account
+      applyMaxDuration({});
     } else {
       errEl.style.display = 'none';
       if (info.creator_avatar_url){ avatar.src = info.creator_avatar_url; avatar.style.display = ''; }
@@ -393,6 +409,7 @@
       card.classList.add('shown');
       fillPrivacy(info.privacy_level_options);
       applyInteraction(info);
+      applyMaxDuration(info);
     }
     syncCommercial();
     validate();
