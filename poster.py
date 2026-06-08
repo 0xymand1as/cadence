@@ -42,7 +42,9 @@ def query_creator_info(access_token: str) -> dict:
       }
     Raises TTPostError on failure (caller should ask the user to reconnect).
     """
-    r = requests.post(CREATOR_INFO_URL, headers=_h(access_token), timeout=15)
+    # TikTok requires an explicit (empty) JSON body for this POST; sending none
+    # with an application/json content-type is rejected as malformed.
+    r = requests.post(CREATOR_INFO_URL, headers=_h(access_token), json={}, timeout=15)
     if not r.ok:
         raise TTPostError(f"creator_info failed [{r.status_code}]: {r.text[:300]}")
     return r.json().get("data", {}) or {}

@@ -422,17 +422,20 @@ def _fetch_handle(token: str):
 @login_required
 def disconnect(acct_id: int):
     acct = TTAccount.query.filter_by(id=acct_id, user_id=current_user.id).first_or_404()
-    # Don't delete queued posts pointed at this acct — cancel them first.
-    cancelled = (
+    handle = acct.handle or acct.tt_open_id[:8]
+    # Posts FK-reference this account — Postgres rejects the delete unless they
+    # go first. Remove all of this account's posts (report how many were queued).
+    queued_cnt = (
         ScheduledPost.query
         .filter_by(tt_account_id=acct.id, user_id=current_user.id, status="queued")
-        .update({"status": "cancelled", "error": "TikTok account disconnected"})
+        .count()
     )
-    handle = acct.handle or acct.tt_open_id[:8]
+    ScheduledPost.query.filter_by(
+        tt_account_id=acct.id, user_id=current_user.id).delete()
     db.session.delete(acct)
     db.session.commit()
-    if cancelled:
-        flash(f"Disconnected @{handle}. Cancelled {cancelled} queued post(s).", "info")
+    if queued_cnt:
+        flash(f"Disconnected @{handle}. Removed {queued_cnt} queued post(s).", "info")
     else:
         flash(f"Disconnected @{handle}.", "info")
     return redirect(url_for("accounts"))
@@ -465,7 +468,10 @@ def _creator_info_map(accts) -> dict:
 @login_required
 def schedule():
     if request.method == "POST":
-        tt_id      = int(request.form.get("tt_account_id") or 0)
+        try:
+            tt_id  = int(request.form.get("tt_account_id") or 0)
+        except (TypeError, ValueError):
+            tt_id  = 0
         caption    = (request.form.get("caption") or "").strip()[:TT_MAX_CAPTION]
         sched_str  = (request.form.get("scheduled_at") or "").strip()
         privacy    = (request.form.get("privacy_level") or "").strip()

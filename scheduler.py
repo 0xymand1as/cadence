@@ -73,10 +73,11 @@ def _ensure_fresh_token(acct: TTAccount, app) -> str:
     """Decrypt access token; refresh if expiring within 5 min."""
     # DB round-trips drop tzinfo (SQLite + Postgres TIMESTAMP w/o tz) — treat as UTC.
     expires_at = acct.expires_at
-    if expires_at.tzinfo is None:
+    if expires_at is not None and expires_at.tzinfo is None:
         expires_at = expires_at.replace(tzinfo=timezone.utc)
-    if expires_at - datetime.now(timezone.utc) > timedelta(minutes=5):
+    if expires_at is not None and expires_at - datetime.now(timezone.utc) > timedelta(minutes=5):
         return decrypt(acct.access_token_e)
+    # expires_at missing → treat as expired and refresh below.
 
     # refresh
     new = refresh_access_token(

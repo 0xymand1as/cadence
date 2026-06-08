@@ -379,12 +379,15 @@
     const info = curInfo();
     if (info.error){
       card.classList.remove('shown');
+      avatar.removeAttribute('src');
       errEl.style.display = 'block';
       errEl.textContent = info.error;
       fillPrivacy([]);
+      applyInteraction({});   // clear any stale toggles from a prior account
     } else {
       errEl.style.display = 'none';
-      avatar.src = info.creator_avatar_url || '';
+      if (info.creator_avatar_url){ avatar.src = info.creator_avatar_url; avatar.style.display = ''; }
+      else { avatar.removeAttribute('src'); avatar.style.display = 'none'; }
       nick.textContent  = info.creator_nickname || '';
       userEl.textContent = info.creator_username ? '@' + info.creator_username : '';
       card.classList.add('shown');
