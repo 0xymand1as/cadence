@@ -14,6 +14,7 @@ import requests
 API_BASE  = "https://open.tiktokapis.com"
 INIT_URL  = f"{API_BASE}/v2/post/publish/video/init/"
 STATUS_URL= f"{API_BASE}/v2/post/publish/status/fetch/"
+CREATOR_INFO_URL = f"{API_BASE}/v2/post/publish/creator_info/query/"
 
 
 class TTPostError(Exception):
@@ -27,12 +28,43 @@ def _h(token: str) -> dict:
     }
 
 
+def query_creator_info(access_token: str) -> dict:
+    """
+    Query the creator's posting capabilities. REQUIRED by TikTok's Content
+    Posting UX guidelines — the posting UI must source its privacy options,
+    interaction-disable flags, nickname, and max duration from this call
+    (not hardcoded). Returns the `data` dict, e.g.:
+      {
+        "creator_username", "creator_nickname", "creator_avatar_url",
+        "privacy_level_options": [...],   # populate the audience selector
+        "comment_disabled", "duet_disabled", "stitch_disabled",  # bools
+        "max_video_post_duration_sec"
+      }
+    Raises TTPostError on failure (caller should ask the user to reconnect).
+    """
+    r = requests.post(CREATOR_INFO_URL, headers=_h(access_token), timeout=15)
+    if not r.ok:
+        raise TTPostError(f"creator_info failed [{r.status_code}]: {r.text[:300]}")
+    return r.json().get("data", {}) or {}
+
+
 def publish_video(access_token: str, video_bytes: bytes, caption: str,
-                  privacy_level: str = "SELF_ONLY") -> str:
+                  privacy_level: str = "SELF_ONLY",
+                  disable_comment: bool = False,
+                  disable_duet: bool = False,
+                  disable_stitch: bool = False,
+                  brand_content_toggle: bool = False,
+                  brand_organic_toggle: bool = False) -> str:
     """
     Synchronously publish a video to the TikTok account associated with
     `access_token`. Returns the TT publish_id once PUBLISH_COMPLETE.
     Raises TTPostError on any failure.
+
+    Interaction + commercial-disclosure flags mirror the creator's choices in
+    the posting UI (TikTok Content Posting UX requirements):
+      disable_*            — turn off comment/duet/stitch for this post
+      brand_organic_toggle — "Your Brand" (Promotional content) disclosure
+      brand_content_toggle — "Branded content" (Paid partnership) disclosure
     """
     size  = len(video_bytes)
     chunk = min(size, 10_000_000)  # 10 MB max per chunk per TT spec
@@ -42,9 +74,11 @@ def publish_video(access_token: str, video_bytes: bytes, caption: str,
         "post_info": {
             "title":               caption[:2200],
             "privacy_level":       privacy_level,
-            "disable_duet":        False,
-            "disable_comment":     False,
-            "disable_stitch":      False,
+            "disable_duet":        bool(disable_duet),
+            "disable_comment":     bool(disable_comment),
+            "disable_stitch":      bool(disable_stitch),
+            "brand_content_toggle": bool(brand_content_toggle),
+            "brand_organic_toggle": bool(brand_organic_toggle),
             "video_cover_timestamp_ms": 1000,
         },
         "source_info": {

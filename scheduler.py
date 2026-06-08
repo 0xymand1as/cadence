@@ -49,6 +49,11 @@ def _fire_due_posts(app):
                 publish_id = publish_video(
                     access_token, post.video_blob, post.caption or "",
                     privacy_level=post.privacy_level or "SELF_ONLY",
+                    disable_comment=post.disable_comment,
+                    disable_duet=post.disable_duet,
+                    disable_stitch=post.disable_stitch,
+                    brand_organic_toggle=post.brand_organic_toggle,
+                    brand_content_toggle=post.brand_content_toggle,
                 )
                 post.status        = "posted"
                 post.tt_publish_id = publish_id
@@ -66,7 +71,11 @@ def _fire_due_posts(app):
 
 def _ensure_fresh_token(acct: TTAccount, app) -> str:
     """Decrypt access token; refresh if expiring within 5 min."""
-    if acct.expires_at - datetime.now(timezone.utc) > timedelta(minutes=5):
+    # DB round-trips drop tzinfo (SQLite + Postgres TIMESTAMP w/o tz) — treat as UTC.
+    expires_at = acct.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at - datetime.now(timezone.utc) > timedelta(minutes=5):
         return decrypt(acct.access_token_e)
 
     # refresh

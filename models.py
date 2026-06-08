@@ -61,6 +61,12 @@ class ScheduledPost(db.Model):
     video_size      = db.Column(db.Integer, default=0)           # bytes — cheap query w/o LENGTH(blob)
     caption         = db.Column(db.Text, default="")
     privacy_level   = db.Column(db.String(32), nullable=False, default="SELF_ONLY")
+    # TikTok Content Posting UX flags — mirror the creator's choices at compose time.
+    disable_comment      = db.Column(db.Boolean, nullable=False, default=False)
+    disable_duet         = db.Column(db.Boolean, nullable=False, default=False)
+    disable_stitch       = db.Column(db.Boolean, nullable=False, default=False)
+    brand_organic_toggle = db.Column(db.Boolean, nullable=False, default=False)  # "Your Brand"
+    brand_content_toggle = db.Column(db.Boolean, nullable=False, default=False)  # "Branded content"
     scheduled_at    = db.Column(db.DateTime, nullable=False, index=True)
     status          = db.Column(db.String(32), nullable=False, default="queued", index=True)
     tt_publish_id   = db.Column(db.String(255), default="")

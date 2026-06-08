@@ -34,6 +34,25 @@
   .char-counter{font-size:.78rem;color:var(--text-dim);text-align:right;margin-top:.25rem;font-variant-numeric:tabular-nums}
   .char-counter.warn{color:#dc2626}
 
+  /* Creator identity card */
+  .creator-card{display:none;align-items:center;gap:.7rem;margin-top:.6rem;padding:.6rem .8rem;border:1px solid var(--rule);border-radius:12px;background:var(--bg-cool)}
+  .creator-card.shown{display:flex}
+  .creator-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;background:#e2e8f0;flex:none}
+  .creator-nick{font-weight:700;font-size:.92rem;color:var(--text)}
+  .creator-user{font-size:.8rem;color:var(--text-dim)}
+  .creator-error{margin-top:.6rem;padding:.6rem .8rem;border-radius:10px;background:#fef2f2;color:#b91c1c;font-size:.84rem}
+
+  /* Interaction + commercial toggles */
+  .toggle-row{display:flex;gap:1.25rem;flex-wrap:wrap}
+  .chk{display:flex;align-items:center;gap:.45rem;font-size:.9rem;color:var(--text);cursor:pointer;flex-wrap:wrap}
+  .chk input{width:16px;height:16px;accent-color:var(--sky);cursor:pointer}
+  .chk.is-disabled{opacity:.45;cursor:not-allowed}
+  .chk.is-disabled input{cursor:not-allowed}
+  .chk-strong{font-weight:600}
+  .chk-sub{flex-basis:100%;margin-left:1.6rem;font-size:.78rem;color:var(--text-dim);font-weight:400}
+  .commercial-panel{margin-top:.8rem;padding:.9rem 1rem;border:1px solid var(--rule);border-radius:12px;background:var(--bg-cool);display:flex;flex-direction:column;gap:.7rem}
+  .commercial-warn{font-size:.82rem;color:#b91c1c;background:#fef2f2;border-radius:8px;padding:.5rem .7rem}
+
   @media (max-width:600px){
     .sched-shell{padding:1.25rem 1rem 5.5rem}
     .sched-card{padding:1.5rem 1.25rem;border-radius:14px}
@@ -71,6 +90,15 @@
           <option value="{{ a.id }}">@{{ a.handle or a.tt_open_id[:12] }}</option>
         {% endfor %}
       </select>
+      <!-- Creator identity, sourced from TikTok creator_info — confirms which account posts. -->
+      <div class="creator-card" id="creatorCard">
+        <img id="creatorAvatar" class="creator-avatar" alt="" />
+        <div class="creator-meta">
+          <div class="creator-nick" id="creatorNick"></div>
+          <div class="creator-user" id="creatorUser"></div>
+        </div>
+      </div>
+      <div class="creator-error" id="creatorError" style="display:none"></div>
     </div>
 
     <div class="form-row">
@@ -100,13 +128,39 @@
 
     <div class="form-row">
       <label for="privacy_level">Who can see this post</label>
+      <!-- Options populated per-account from TikTok creator_info (no default). -->
       <select name="privacy_level" id="privacy_level" required>
         <option value="" disabled selected>Select an audience…</option>
-        <option value="PUBLIC_TO_EVERYONE">Public — everyone</option>
-        <option value="MUTUAL_FOLLOW_FRIENDS">Friends — mutual followers</option>
-        <option value="SELF_ONLY">Private — only me</option>
       </select>
       <div class="form-hint">You choose the audience for every post — there is no default.</div>
+    </div>
+
+    <div class="form-row">
+      <label>Allow viewers to</label>
+      <div class="toggle-row">
+        <label class="chk"><input type="checkbox" name="allow_comment" id="allow_comment"> Comment</label>
+        <label class="chk"><input type="checkbox" name="allow_duet" id="allow_duet"> Duet</label>
+        <label class="chk"><input type="checkbox" name="allow_stitch" id="allow_stitch"> Stitch</label>
+      </div>
+      <div class="form-hint" id="interactionHint">Off by default. Greyed options are turned off in this account's TikTok settings.</div>
+    </div>
+
+    <div class="form-row">
+      <label class="chk chk-strong">
+        <input type="checkbox" name="disclose_commercial" id="disclose_commercial">
+        Disclose this is commercial content
+      </label>
+      <div class="form-hint">Turn on if this post promotes a brand, product, or service.</div>
+
+      <div class="commercial-panel" id="commercialPanel" style="display:none">
+        <label class="chk"><input type="checkbox" name="brand_organic_toggle" id="brand_organic_toggle"> Your Brand
+          <span class="chk-sub">Promotes your own business. Labeled "Promotional content".</span></label>
+        <label class="chk"><input type="checkbox" name="brand_content_toggle" id="brand_content_toggle"> Branded content
+          <span class="chk-sub">Paid partnership with a third party. Labeled "Paid partnership".</span></label>
+        <div class="commercial-warn" id="brandedPrivateWarn" style="display:none">
+          Branded content can't be private — pick a public or friends audience above.
+        </div>
+      </div>
     </div>
 
     <div class="form-row">
@@ -115,7 +169,7 @@
       <div class="form-hint">Cadence converts to UTC. Schedule up to 10 days ahead.</div>
     </div>
 
-    <p class="form-hint" style="margin-bottom:1rem">By scheduling, you confirm your content follows TikTok's <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" rel="noopener" style="color:var(--sky-deep)">Music Usage Confirmation</a> and Community Guidelines.</p>
+    <p class="form-hint" id="complianceText" style="margin-bottom:1rem">By scheduling, you agree to TikTok's <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" rel="noopener" style="color:var(--sky-deep)">Music Usage Confirmation</a> and Community Guidelines.</p>
 
     <button type="submit" id="submitBtn" class="btn btn-primary" style="width:100%">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
@@ -269,4 +323,114 @@
 })();
 </script>
 <style>@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}</style>
+
+<script>
+// ── TikTok compliance UI — driven by per-account creator_info ───────────
+(function(){
+  const INFO   = {{ creator_info|tojson }};
+  const LABELS = {{ privacy_labels|tojson }};
+
+  const acctSel   = document.getElementById('tt_account_id');
+  if (!acctSel) return;  // no accounts connected
+  const privSel   = document.getElementById('privacy_level');
+  const card      = document.getElementById('creatorCard');
+  const avatar    = document.getElementById('creatorAvatar');
+  const nick      = document.getElementById('creatorNick');
+  const userEl    = document.getElementById('creatorUser');
+  const errEl     = document.getElementById('creatorError');
+  const submitBtn = document.getElementById('submitBtn');
+  const compText  = document.getElementById('complianceText');
+
+  const inter = {
+    comment: {cb: document.getElementById('allow_comment'), key:'comment_disabled'},
+    duet:    {cb: document.getElementById('allow_duet'),    key:'duet_disabled'},
+    stitch:  {cb: document.getElementById('allow_stitch'),  key:'stitch_disabled'},
+  };
+  const disclose   = document.getElementById('disclose_commercial');
+  const cPanel     = document.getElementById('commercialPanel');
+  const brandOrg   = document.getElementById('brand_organic_toggle');
+  const brandCon   = document.getElementById('brand_content_toggle');
+  const brandWarn  = document.getElementById('brandedPrivateWarn');
+
+  const MUC = 'https://www.tiktok.com/legal/page/global/music-usage-confirmation/en';
+  const BCP = 'https://www.tiktok.com/legal/page/global/bc-policy/en';
+
+  function curInfo(){ return INFO[acctSel.value] || {}; }
+
+  function fillPrivacy(opts){
+    privSel.innerHTML = '<option value="" disabled selected>Select an audience…</option>';
+    (opts || ['SELF_ONLY']).forEach(code => {
+      const o = document.createElement('option');
+      o.value = code; o.textContent = LABELS[code] || code;
+      privSel.appendChild(o);
+    });
+  }
+
+  function applyInteraction(info){
+    Object.values(inter).forEach(({cb, key}) => {
+      const locked = !!info[key];
+      cb.checked  = false;          // none checked by default (TikTok rule)
+      cb.disabled = locked;         // grey out if disabled in creator settings
+      cb.closest('.chk').classList.toggle('is-disabled', locked);
+    });
+  }
+
+  function applyAccount(){
+    const info = curInfo();
+    if (info.error){
+      card.classList.remove('shown');
+      errEl.style.display = 'block';
+      errEl.textContent = info.error;
+      fillPrivacy([]);
+    } else {
+      errEl.style.display = 'none';
+      avatar.src = info.creator_avatar_url || '';
+      nick.textContent  = info.creator_nickname || '';
+      userEl.textContent = info.creator_username ? '@' + info.creator_username : '';
+      card.classList.add('shown');
+      fillPrivacy(info.privacy_level_options);
+      applyInteraction(info);
+    }
+    syncCommercial();
+    validate();
+  }
+
+  function syncCommercial(){
+    const on = disclose.checked;
+    cPanel.style.display = on ? 'flex' : 'none';
+    if (!on){ brandOrg.checked = false; brandCon.checked = false; }
+
+    // Branded content cannot be private — disable SELF_ONLY when branded is on.
+    const selfOpt = privSel.querySelector('option[value="SELF_ONLY"]');
+    const brandedPrivateConflict = brandCon.checked && privSel.value === 'SELF_ONLY';
+    if (selfOpt){
+      selfOpt.disabled = brandCon.checked;
+      if (brandedPrivateConflict){ privSel.value = ''; }
+    }
+    brandWarn.style.display = brandCon.checked ? 'block' : 'none';
+
+    // Compliance declaration text (TikTok-mandated wording).
+    if (on && brandCon.checked){
+      compText.innerHTML = 'By posting, you agree to TikTok\'s <a href="'+BCP+'" target="_blank" rel="noopener" style="color:var(--sky-deep)">Branded Content Policy</a> and <a href="'+MUC+'" target="_blank" rel="noopener" style="color:var(--sky-deep)">Music Usage Confirmation</a>.';
+    } else {
+      compText.innerHTML = 'By posting, you agree to TikTok\'s <a href="'+MUC+'" target="_blank" rel="noopener" style="color:var(--sky-deep)">Music Usage Confirmation</a> and Community Guidelines.';
+    }
+  }
+
+  function validate(){
+    const info = curInfo();
+    let ok = !info.error && !!privSel.value;
+    if (disclose.checked && !(brandOrg.checked || brandCon.checked)) ok = false;
+    if (brandCon.checked && privSel.value === 'SELF_ONLY') ok = false;
+    submitBtn.disabled = !ok;
+  }
+
+  acctSel.addEventListener('change', applyAccount);
+  privSel.addEventListener('change', () => { syncCommercial(); validate(); });
+  disclose.addEventListener('change', () => { syncCommercial(); validate(); });
+  [brandOrg, brandCon].forEach(el => el.addEventListener('change', () => { syncCommercial(); validate(); }));
+
+  applyAccount();  // initialize for first account
+})();
+</script>
 {% endblock %}

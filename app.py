@@ -51,7 +51,8 @@ from flask_limiter.util import get_remote_address
 
 from models   import db, User, TTAccount, ScheduledPost
 from crypto   import encrypt, decrypt
-from scheduler import start_scheduler
+from poster    import query_creator_info, TTPostError
+from scheduler import start_scheduler, _ensure_fresh_token
 
 
 # ── Config ────────────────────────────────────────────────────────────
@@ -132,9 +133,15 @@ TT_MAX_VIDEO_BYTES = 287 * 1024 * 1024   # 287 MB per TT docs
 TT_MAX_CAPTION     = 2200
 TT_MIN_SECS        = 3
 TT_MAX_SECS        = 60
-# TikTok Content Posting API privacy levels. The user MUST actively choose one
-# (no default) — TikTok app review rejects a missing or pre-defaulted selector.
-TT_PRIVACY_OPTIONS = ("PUBLIC_TO_EVERYONE", "MUTUAL_FOLLOW_FRIENDS", "SELF_ONLY")
+# Privacy options are NOT hardcoded — TikTok requires the audience selector to
+# be sourced per-account from the creator_info API (see _creator_info_map).
+# Human-readable labels for the option codes creator_info returns:
+TT_PRIVACY_LABELS  = {
+    "PUBLIC_TO_EVERYONE":    "Public — everyone",
+    "MUTUAL_FOLLOW_FRIENDS": "Friends — mutual followers",
+    "FOLLOWER_OF_CREATOR":   "Followers",
+    "SELF_ONLY":             "Private — only me",
+}
 
 
 # ── Public marketing pages ────────────────────────────────────────────
@@ -433,6 +440,27 @@ def disconnect(acct_id: int):
 
 # ── Schedule a post ───────────────────────────────────────────────────
 
+def _creator_info_map(accts) -> dict:
+    """Query TikTok creator_info for each connected account. TikTok's Content
+    Posting UX guidelines require the posting UI to source privacy options,
+    interaction-disable flags, nickname, and max duration from this call.
+    Returns {acct_id: {...info...}}; on failure stores {"error": msg} so the
+    template can prompt a reconnect instead of silently hardcoding."""
+    out = {}
+    for a in accts:
+        try:
+            token = _ensure_fresh_token(a, app)
+            info  = query_creator_info(token)
+            # Always offer at least SELF_ONLY so the user is never fully blocked.
+            if not info.get("privacy_level_options"):
+                info["privacy_level_options"] = ["SELF_ONLY"]
+            out[a.id] = info
+        except Exception as e:                                   # noqa: BLE001
+            logging.warning("creator_info failed for acct %s: %s", a.id, e)
+            out[a.id] = {"error": "Couldn't reach TikTok for this account. Reconnect it and try again."}
+    return out
+
+
 @app.route("/schedule", methods=["GET", "POST"])
 @login_required
 def schedule():
@@ -447,9 +475,38 @@ def schedule():
         if not acct:
             flash("Pick a connected TikTok account.", "error")
             return redirect(url_for("schedule"))
-        if privacy not in TT_PRIVACY_OPTIONS:
+
+        # Authoritative server-side capabilities (never trust the client form).
+        try:
+            token = _ensure_fresh_token(acct, app)
+            info  = query_creator_info(token)
+        except Exception as e:                                   # noqa: BLE001
+            logging.warning("creator_info failed at submit for acct %s: %s", acct.id, e)
+            flash("Couldn't reach TikTok to confirm posting options. Reconnect the account and try again.", "error")
+            return redirect(url_for("schedule"))
+
+        allowed_privacy = info.get("privacy_level_options") or ["SELF_ONLY"]
+        if privacy not in allowed_privacy:
             flash("Choose who can see this post.", "error")
             return redirect(url_for("schedule"))
+
+        # ── Commercial content disclosure (TikTok mandatory) ──────────
+        disclose       = request.form.get("disclose_commercial") == "on"
+        brand_organic  = disclose and request.form.get("brand_organic_toggle") == "on"
+        brand_content  = disclose and request.form.get("brand_content_toggle") == "on"
+        if disclose and not (brand_organic or brand_content):
+            flash("You turned on commercial content disclosure — pick 'Your Brand' and/or 'Branded content'.", "error")
+            return redirect(url_for("schedule"))
+        # Branded content cannot be private.
+        if brand_content and privacy == "SELF_ONLY":
+            flash("Branded content can't be private. Choose a public or friends audience.", "error")
+            return redirect(url_for("schedule"))
+
+        # ── Interaction settings — checkbox = allow; honor account-level locks
+        disable_comment = (request.form.get("allow_comment") != "on") or bool(info.get("comment_disabled"))
+        disable_duet    = (request.form.get("allow_duet")    != "on") or bool(info.get("duet_disabled"))
+        disable_stitch  = (request.form.get("allow_stitch")  != "on") or bool(info.get("stitch_disabled"))
+
         if not (file and file.filename):
             flash("Upload a video file.", "error")
             return redirect(url_for("schedule"))
@@ -488,6 +545,11 @@ def schedule():
             video_size     = len(blob),
             caption        = caption,
             privacy_level  = privacy,
+            disable_comment      = disable_comment,
+            disable_duet         = disable_duet,
+            disable_stitch       = disable_stitch,
+            brand_organic_toggle = brand_organic,
+            brand_content_toggle = brand_content,
             scheduled_at   = sched_dt,
             status         = "queued",
         ))
@@ -499,9 +561,12 @@ def schedule():
         )
         return redirect(url_for("dashboard"))
 
+    accts = current_user.tt_accounts
     return render_template(
         "schedule.html",
-        accts             = current_user.tt_accounts,
+        accts             = accts,
+        creator_info      = _creator_info_map(accts),
+        privacy_labels    = TT_PRIVACY_LABELS,
         tt_max_video_mb   = TT_MAX_VIDEO_BYTES // (1024 * 1024),
         tt_max_caption    = TT_MAX_CAPTION,
         tt_min_secs       = TT_MIN_SECS,
@@ -566,6 +631,12 @@ def _initialize(app):
             "scheduled_posts", "privacy_level",
             "VARCHAR(32) NOT NULL DEFAULT 'SELF_ONLY'",
         )
+        for _col in ("disable_comment", "disable_duet", "disable_stitch",
+                     "brand_organic_toggle", "brand_content_toggle"):
+            _add_column_if_missing(
+                "scheduled_posts", _col,
+                "BOOLEAN NOT NULL DEFAULT FALSE",
+            )
 
 
 def _add_column_if_missing(table: str, column: str, ddl_type: str) -> None:
