@@ -378,6 +378,15 @@ def callback():
                                message="TikTok returned an incomplete token. Please try again."), 400
 
     handle, avatar = _fetch_handle(access_token)
+    if not handle:
+        # user.info.basic sometimes omits username (sandbox/unaudited) — backfill
+        # the display handle from creator_info so the UI never shows a raw open_id.
+        try:
+            ci = query_creator_info(access_token)
+            handle = ci.get("creator_username") or ci.get("creator_nickname") or ""
+            avatar = avatar or ci.get("creator_avatar_url") or ""
+        except Exception:                                       # noqa: BLE001
+            pass
 
     existing = TTAccount.query.filter_by(
         user_id=current_user.id, tt_open_id=open_id).first()
