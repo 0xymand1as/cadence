@@ -1,24 +1,31 @@
 name: keepalive
 
-# Pings the live app every 5 min so Render's free tier never idles into a
-# cold start (it sleeps after ~15 min of no traffic). A failed ping also
-# surfaces as a failed Action run = a free uptime alarm.
+# Keeps the Render free instance warm so the TikTok reviewer (and real users)
+# never hit a ~50s cold start. GitHub's cron can be delayed, so each run
+# self-pings every 60s for ~14 minutes; with a */5 trigger the runs overlap
+# into continuous coverage (Render sleeps only after ~15 min idle).
+# Public repo => unlimited Actions minutes, so this is free.
 
 on:
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch: {}
 
+concurrency:
+  group: keepalive
+  cancel-in-progress: false   # let runs overlap for redundancy
+
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping /health
+      - name: Keep Cadence warm
         run: |
-          for i in 1 2 3; do
+          for i in $(seq 1 14); do
             if curl -fsS --max-time 60 https://cadence.biggerdreamsco.com/health; then
-              echo "ok"; exit 0
+              echo " ping $i ok"
+            else
+              echo " ping $i failed"
             fi
-            echo "retry $i after cold start..."; sleep 15
+            sleep 60
           done
-          echo "health check failed"; exit 1
