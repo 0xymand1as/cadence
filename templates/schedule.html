@@ -295,6 +295,12 @@
     progressLabel.style.display = 'block';
 
     const data = new FormData(form);
+    // The <input type=datetime-local> value is naive local time. Send it as an
+    // absolute UTC timestamp so the server doesn't misread it as UTC (which made
+    // valid future times look "in the past" for users behind UTC).
+    if (sched.value){
+      data.set('scheduled_at', new Date(sched.value).toISOString().replace('Z', '+00:00'));
+    }
     const xhr  = new XMLHttpRequest();
     xhr.open('POST', form.action || window.location.pathname);
     xhr.upload.onprogress = ev => {
