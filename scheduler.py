@@ -20,6 +20,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from models import db, ScheduledPost, TTAccount
 from crypto import decrypt, encrypt
 from poster import publish_video, refresh_access_token, TTPostError
+from storage import get_video, delete_video
 
 log = logging.getLogger("cadence.scheduler")
 
@@ -46,8 +47,10 @@ def _fire_due_posts(app):
             try:
                 acct = post.tt_account
                 access_token = _ensure_fresh_token(acct, app)
+                # Video lives in object storage (new posts) or inline (legacy).
+                video_bytes = get_video(post.video_key) if post.video_key else (post.video_blob or b"")
                 publish_id = publish_video(
-                    access_token, post.video_blob, post.caption or "",
+                    access_token, video_bytes, post.caption or "",
                     privacy_level=post.privacy_level or "SELF_ONLY",
                     disable_comment=post.disable_comment,
                     disable_duet=post.disable_duet,
@@ -58,8 +61,10 @@ def _fire_due_posts(app):
                 post.status        = "posted"
                 post.tt_publish_id = publish_id
                 post.posted_at     = datetime.now(timezone.utc)
-                # free the blob — keep DB lean post-publish
-                post.video_blob    = b""
+                # free storage + any legacy inline bytes
+                if post.video_key:
+                    delete_video(post.video_key)
+                post.video_blob    = None
                 db.session.commit()
                 log.info(f"posted {post.id} → publish_id={publish_id}")
             except Exception as e:

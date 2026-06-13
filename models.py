@@ -57,7 +57,8 @@ class ScheduledPost(db.Model):
     user_id         = db.Column(db.Integer, db.ForeignKey("users.id"),       nullable=False, index=True)
     tt_account_id   = db.Column(db.Integer, db.ForeignKey("tt_accounts.id"), nullable=False, index=True)
     video_filename  = db.Column(db.String(255), nullable=False)
-    video_blob      = db.Column(db.LargeBinary, nullable=False)  # held in DB; OK for review-stage volume
+    video_key       = db.Column(db.String(512))                  # object-storage key (Supabase); preferred
+    video_blob      = db.Column(db.LargeBinary, nullable=True)   # legacy inline fallback; new posts use video_key
     video_size      = db.Column(db.Integer, default=0)           # bytes — cheap query w/o LENGTH(blob)
     caption         = db.Column(db.Text, default="")
     privacy_level   = db.Column(db.String(32), nullable=False, default="SELF_ONLY")

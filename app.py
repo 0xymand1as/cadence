@@ -49,9 +49,12 @@ from flask_compress import Compress
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+import uuid
+
 from models   import db, User, TTAccount, ScheduledPost
 from crypto   import encrypt, decrypt
 from poster    import query_creator_info, TTPostError
+from storage   import put_video
 from scheduler import start_scheduler, _ensure_fresh_token
 
 
@@ -553,11 +556,21 @@ def schedule():
             flash(f"Video is {len(blob)//(1024*1024)} MB — TikTok caps uploads at 287 MB.", "error")
             return redirect(url_for("schedule"))
 
+        # Store the video in object storage (NOT Postgres — a large bytea write
+        # OOMs the small free DB). The DB keeps only the key.
+        video_key = f"{current_user.id}/{uuid.uuid4().hex}.mp4"
+        try:
+            put_video(video_key, blob)
+        except Exception as e:                                   # noqa: BLE001
+            logging.error("video storage upload failed: %s", e)
+            flash("Couldn't store the video. Please try again.", "error")
+            return redirect(url_for("schedule"))
+
         db.session.add(ScheduledPost(
             user_id        = current_user.id,
             tt_account_id  = acct.id,
             video_filename = (file.filename or "video.mp4")[:255],
-            video_blob     = blob,
+            video_key      = video_key,
             video_size     = len(blob),
             caption        = caption,
             privacy_level  = privacy,
@@ -597,9 +610,12 @@ def cancel(post_id: int):
     if p.status != "queued":
         flash(f"Can't cancel — post is already {p.status}.", "error")
     else:
-        # Free the blob immediately + mark cancelled (audit trail).
-        p.status     = "cancelled"
-        p.video_blob = b""
+        # Free storage + bytes immediately + mark cancelled (audit trail).
+        p.status = "cancelled"
+        if p.video_key:
+            from storage import delete_video
+            delete_video(p.video_key)
+        p.video_blob = None
         db.session.commit()
         flash("Post cancelled.", "info")
     return redirect(url_for("dashboard"))
@@ -653,6 +669,15 @@ def _initialize(app):
                 "scheduled_posts", _col,
                 "BOOLEAN NOT NULL DEFAULT FALSE",
             )
+        # Video now lives in object storage; DB keeps only the key.
+        _add_column_if_missing("scheduled_posts", "video_key", "VARCHAR(512)")
+        # Stop requiring inline bytes (Postgres). Harmless no-op on SQLite.
+        try:
+            from sqlalchemy import text as _text
+            with db.engine.begin() as conn:
+                conn.execute(_text("ALTER TABLE scheduled_posts ALTER COLUMN video_blob DROP NOT NULL"))
+        except Exception as e:                                   # noqa: BLE001
+            app.logger.info("video_blob DROP NOT NULL skipped: %s", e)
 
 
 def _add_column_if_missing(table: str, column: str, ddl_type: str) -> None:
