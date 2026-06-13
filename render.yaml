@@ -14,3 +14,11 @@ services:
         value: https://cadence.biggerdreamsco.com/callback
       - key: FLASK_SECRET
         generateValue: true
+      - key: R2_ENDPOINT_URL
+        sync: false          # https://<accountid>.r2.cloudflarestorage.com
+      - key: R2_ACCESS_KEY_ID
+        sync: false          # R2 API token scoped to the videos bucket only
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        value: videos
