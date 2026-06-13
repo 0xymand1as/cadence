@@ -306,9 +306,21 @@
     };
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 400){
-        progressLabel.textContent = 'Done. Redirecting…';
-        // Server may 302; XHR follows + lands on dashboard HTML in responseText.
-        window.location.href = xhr.responseURL || '{{ url_for("dashboard") }}';
+        // XHR auto-followed the 302. Success redirects to /dashboard;
+        // validation errors redirect back to /schedule with a flash. Don't
+        // re-GET /schedule from JS (that consumes the flash invisibly) —
+        // parse it from the already-fetched HTML and surface it.
+        const url = xhr.responseURL || '';
+        if (/\/schedule(\?|$)/.test(url)){
+          const m = xhr.responseText.match(/<div class="flash[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+          progressLabel.textContent = m ? m[1].replace(/<[^>]+>/g,'').trim() : 'Could not schedule. Check the form and try again.';
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = 'Schedule post';
+          progress.classList.remove('shown');
+        } else {
+          progressLabel.textContent = 'Done. Redirecting…';
+          window.location.href = url || '{{ url_for("dashboard") }}';
+        }
       } else {
         progressLabel.textContent = 'Upload failed (' + xhr.status + '). Try again.';
         submitBtn.disabled = false;
