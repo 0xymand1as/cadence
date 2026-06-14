@@ -1,9 +1,13 @@
 name: keepalive
 
 # Keeps the Render free instance warm so the TikTok reviewer (and real users)
-# never hit a ~50s cold start. GitHub's cron can be delayed, so each run
-# self-pings every 60s for ~14 minutes; with a */5 trigger the runs overlap
-# into continuous coverage (Render sleeps only after ~15 min idle).
+# never hit a ~50s cold start. GitHub THROTTLES */5 schedules hard — in practice
+# runs fire only ~hourly, so a 14-min ping loop left 45-70 min cold gaps and the
+# instance (15-min idle spin-down) went cold anyway. Fix: each run now pings for
+# ~58 minutes, so back-to-back ~hourly runs give near-continuous coverage.
+# NOTE: this is a free best-effort mitigation — GitHub cron still occasionally
+# skips a run (gaps up to ~86 min observed), so it is NOT a hard guarantee. For
+# a review window, a paid Render instance (no spin-down) is the reliable fix.
 # Public repo => unlimited Actions minutes, so this is free.
 
 on:
@@ -21,7 +25,7 @@ jobs:
     steps:
       - name: Keep Cadence warm
         run: |
-          for i in $(seq 1 14); do
+          for i in $(seq 1 58); do
             if curl -fsS --max-time 60 https://cadence.biggerdreamsco.com/health; then
               echo " ping $i ok"
             else
