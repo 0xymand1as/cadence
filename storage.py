@@ -21,10 +21,12 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ClientError
 
-_ENDPOINT = os.environ.get("R2_ENDPOINT_URL", "").rstrip("/")
-_KEY_ID   = os.environ.get("R2_ACCESS_KEY_ID", "")
-_SECRET   = os.environ.get("R2_SECRET_ACCESS_KEY", "")
-_BUCKET   = os.environ.get("R2_BUCKET", "videos")
+# .strip() guards against trailing newlines/spaces pasted into the dashboard env
+# fields — a stray "\n" on the secret yields a SigV4 SignatureDoesNotMatch.
+_ENDPOINT = os.environ.get("R2_ENDPOINT_URL", "").strip().rstrip("/")
+_KEY_ID   = os.environ.get("R2_ACCESS_KEY_ID", "").strip()
+_SECRET   = os.environ.get("R2_SECRET_ACCESS_KEY", "").strip()
+_BUCKET   = os.environ.get("R2_BUCKET", "videos").strip()
 
 _client = None
 
