@@ -68,8 +68,19 @@ def publish_video(access_token: str, video_bytes: bytes, caption: str,
       brand_organic_toggle — "Your Brand" (Promotional content) disclosure
       brand_content_toggle — "Branded content" (Paid partnership) disclosure
     """
-    size  = len(video_bytes)
-    chunk = min(size, 10_000_000)  # 10 MB max per chunk per TT spec
+    size = len(video_bytes)
+    # TikTok chunk rules: a video <= 64 MB uploads as a SINGLE chunk (even when
+    # under the 5 MB per-chunk minimum). Above 64 MB it splits into 10 MB chunks
+    # where total_chunk_count is a FLOOR and the final chunk absorbs the
+    # remainder — so no trailing chunk falls under the 5 MB minimum. The old
+    # `min(size,10MB)` + ceil math produced a tiny final chunk for any 10–64 MB
+    # video, which TikTok rejected with invalid_params ("total chunk count").
+    if size <= 64_000_000:
+        chunk        = size
+        total_chunks = 1
+    else:
+        chunk        = 10_000_000
+        total_chunks = size // chunk
 
     # ── 1. init ───────────────────────────────────────────────────────
     init_body = {
@@ -87,7 +98,7 @@ def publish_video(access_token: str, video_bytes: bytes, caption: str,
             "source":            "FILE_UPLOAD",
             "video_size":        size,
             "chunk_size":        chunk,
-            "total_chunk_count": max(1, (size + chunk - 1) // chunk),
+            "total_chunk_count": total_chunks,
         },
     }
     r = requests.post(INIT_URL, headers=_h(access_token), json=init_body, timeout=30)
@@ -100,9 +111,10 @@ def publish_video(access_token: str, video_bytes: bytes, caption: str,
         raise TTPostError(f"init missing publish_id or upload_url: {body}")
 
     # ── 2. chunked upload ─────────────────────────────────────────────
-    offset = 0
-    while offset < size:
-        end = min(offset + chunk, size) - 1
+    for i in range(total_chunks):
+        offset = i * chunk
+        # final chunk runs to the end of the file (absorbs any remainder)
+        end = (size - 1) if i == total_chunks - 1 else (offset + chunk - 1)
         seg = video_bytes[offset:end + 1]
         put = requests.put(
             upload_url,
@@ -115,7 +127,6 @@ def publish_video(access_token: str, video_bytes: bytes, caption: str,
         )
         if put.status_code not in (200, 201, 206):
             raise TTPostError(f"chunk PUT [{offset}-{end}] failed [{put.status_code}]: {put.text[:200]}")
-        offset = end + 1
 
     # ── 3. poll status ────────────────────────────────────────────────
     deadline = time.time() + 600  # 10 min cap
